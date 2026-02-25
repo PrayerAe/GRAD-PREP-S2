@@ -2,8 +2,8 @@ import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getAnalyticsSummary, formatDuration } from '../utils/analytics'
-import { isFirebaseConfigured } from '../firebase'
-import { listenToUsers, listenToPageVisits } from '../services/firestore'
+import { isFirebaseConfigured, initError } from '../firebase'
+import { listenToUsers, listenToPageVisits, syncUserToFirestore, setForceLogoutTimestamp, getAllUsersFromFirestore } from '../services/firestore'
 import {
   Users, Activity, Clock, Monitor, Smartphone, Tablet,
   BarChart2, Globe, Search, LogOut, RefreshCw, Trash2,
@@ -74,6 +74,8 @@ export default function Admin() {
   const [activeTab, setActiveTab] = useState('overview')
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [mobileSidebar, setMobileSidebar] = useState(false)
+  const [selectedUser, setSelectedUser] = useState(null)
+  const [forceLogoutMsg, setForceLogoutMsg] = useState('')
 
   // Firestore real-time state
   const [firestoreUsers, setFirestoreUsers] = useState(null)   // null = belum dimuat
@@ -96,14 +98,48 @@ export default function Admin() {
       setFirestoreVisits(visits)
     }, 500)
 
+    // Auto-refresh setiap 15 detik sebagai backup jika onSnapshot telat
+    const interval = setInterval(async () => {
+      const fresh = await getAllUsersFromFirestore()
+      if (fresh !== null) setFirestoreUsers(fresh)
+    }, 15000)
+
+    // Refresh saat admin kembali ke tab ini
+    const onVisibility = () => {
+      if (!document.hidden) {
+        getAllUsersFromFirestore().then(fresh => {
+          if (fresh !== null) setFirestoreUsers(fresh)
+        }).catch(() => {})
+      }
+    }
+    document.addEventListener('visibilitychange', onVisibility)
+
     return () => {
       unsubUsers()
       unsubVisits()
+      clearInterval(interval)
+      document.removeEventListener('visibilitychange', onVisibility)
     }
   }, [])
 
-  // Gunakan data Firestore jika tersedia, fallback ke localStorage
-  const allUsers = firestoreUsers !== null ? firestoreUsers : localUsers
+  // Merge Firestore users + localStorage users (prefer Firestore, tambahkan local-only users)
+  const allUsers = useMemo(() => {
+    if (firestoreUsers === null) return localUsers
+    const firestoreEmails = new Set(firestoreUsers.map(u => u.email))
+    const localOnlyUsers = localUsers.filter(u => !firestoreEmails.has(u.email))
+    return [...firestoreUsers, ...localOnlyUsers]
+  }, [firestoreUsers, localUsers])
+
+  // Auto-sync local-only users ke Firestore saat Firebase connect
+  useEffect(() => {
+    if (!isFirebaseConfigured || firestoreUsers === null) return
+    const firestoreEmails = new Set(firestoreUsers.map(u => u.email))
+    const localOnlyUsers = localUsers.filter(u => !firestoreEmails.has(u.email))
+    localOnlyUsers.forEach(({ email, ...data }) => {
+      syncUserToFirestore(email, data)
+    })
+  }, [firestoreUsers, localUsers])
+
   const allVisits = firestoreVisits !== null ? firestoreVisits : localAnalytics.recentVisits
 
   // Hitung ulang analytics summary dari data Firestore
@@ -141,7 +177,19 @@ export default function Admin() {
     }
   }, [firestoreVisits, localAnalytics])
 
-  const handleRefresh = () => setRefreshKey(k => k + 1)
+  const handleRefresh = async () => {
+    setRefreshKey(k => k + 1)
+    if (isFirebaseConfigured) {
+      const fresh = await getAllUsersFromFirestore()
+      if (fresh !== null) setFirestoreUsers(fresh)
+    }
+  }
+
+  const handleForceLogoutAll = async () => {
+    await setForceLogoutTimestamp()
+    setForceLogoutMsg('Semua user akan logout otomatis saat membuka website berikutnya.')
+    setTimeout(() => setForceLogoutMsg(''), 5000)
+  }
 
   const handleLogout = () => {
     logout()
@@ -177,6 +225,20 @@ export default function Admin() {
     if (sortBy === col) setSortDir(d => d === 'asc' ? 'desc' : 'asc')
     else { setSortBy(col); setSortDir('desc') }
   }
+
+  // Waktu yang dihabiskan setiap user hari ini (dari page visits)
+  const userTimeToday = useMemo(() => {
+    const todayStr = new Date().toDateString()
+    const map = {}
+    allVisits.forEach(v => {
+      if (!v.userId) return
+      const dateStr = new Date(v.date || v.serverTimestamp).toDateString()
+      if (dateStr === todayStr) {
+        map[v.userId] = (map[v.userId] || 0) + (v.duration || 0)
+      }
+    })
+    return map
+  }, [allVisits])
 
   // Compute user-level stats
   const userStats = useMemo(() => {
@@ -341,9 +403,9 @@ export default function Admin() {
                 {liveConnected ? 'Live (Cross-device)' : 'Connecting...'}
               </div>
             ) : (
-              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-orange-50 text-orange-700">
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-red-50 text-red-700" title={initError || 'Firebase not initialized'}>
                 <WifiOff size={13} />
-                Lokal Only
+                Firebase Error
               </div>
             )}
             <button
@@ -582,7 +644,7 @@ export default function Admin() {
           {/* ===== USERS TAB ===== */}
           {activeTab === 'users' && (
             <>
-              {/* Search */}
+              {/* Search + Force Logout */}
               <div className="flex flex-col sm:flex-row gap-3">
                 <div className="relative flex-1">
                   <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
@@ -597,7 +659,21 @@ export default function Admin() {
                   <Users size={14} />
                   <span>{filteredUsers.length} user ditemukan</span>
                 </div>
+                <button
+                  onClick={handleForceLogoutAll}
+                  className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-orange-500 hover:bg-orange-600 text-white text-sm font-semibold transition-colors whitespace-nowrap"
+                  title="Paksa semua user login ulang saat buka website berikutnya"
+                >
+                  <LogOut size={15} />
+                  Force Logout Semua
+                </button>
               </div>
+              {forceLogoutMsg && (
+                <div className="flex items-center gap-2 px-4 py-3 rounded-xl bg-orange-50 border border-orange-200 text-orange-700 text-sm">
+                  <Shield size={15} className="flex-shrink-0" />
+                  {forceLogoutMsg}
+                </div>
+              )}
 
               {/* Users Table */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
@@ -612,6 +688,7 @@ export default function Admin() {
                           { label: 'Terakhir Aktif', col: 'lastActive' },
                           { label: 'Tryout', col: 'tryout' },
                           { label: 'Latihan', col: null },
+                          { label: 'Hari Ini', col: null },
                           { label: 'Math %', col: null },
                           { label: 'Eng %', col: null },
                           { label: '', col: null },
@@ -632,7 +709,7 @@ export default function Admin() {
                     <tbody>
                       {filteredUsers.length === 0 ? (
                         <tr>
-                          <td colSpan={9} className="py-16 text-center text-gray-400">
+                          <td colSpan={10} className="py-16 text-center text-gray-400">
                             {allUsers.length === 0 ? 'Belum ada user terdaftar.' : 'Tidak ada user yang cocok dengan pencarian.'}
                           </td>
                         </tr>
@@ -665,18 +742,38 @@ export default function Admin() {
                           </td>
                           <td className="py-3.5 px-4 text-gray-600">{u.progress?.latihanHistory?.length || 0}x</td>
                           <td className="py-3.5 px-4">
+                            {userTimeToday[u.email] > 0 ? (
+                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg bg-emerald-50 text-emerald-700 text-xs font-semibold whitespace-nowrap">
+                                <Clock size={10} />
+                                {formatDuration(userTimeToday[u.email])}
+                              </span>
+                            ) : (
+                              <span className="text-gray-300 text-xs">—</span>
+                            )}
+                          </td>
+                          <td className="py-3.5 px-4">
                             <ProgressPill value={u.progress?.mathProgress || 0} color="blue" />
                           </td>
                           <td className="py-3.5 px-4">
                             <ProgressPill value={u.progress?.englishProgress || 0} color="emerald" />
                           </td>
                           <td className="py-3.5 px-4">
-                            <button
-                              onClick={() => setConfirmDelete(u.email)}
-                              className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => setSelectedUser(u)}
+                                className="p-1.5 rounded-lg text-blue-400 hover:bg-blue-50 hover:text-blue-600 transition-colors"
+                                title="Lihat detail"
+                              >
+                                <Eye size={14} />
+                              </button>
+                              <button
+                                onClick={() => setConfirmDelete(u.email)}
+                                className="p-1.5 rounded-lg text-red-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                                title="Hapus user"
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       ))}
@@ -776,6 +873,15 @@ export default function Admin() {
           )}
         </div>
       </main>
+
+      {/* User Detail Panel */}
+      {selectedUser && (
+        <UserDetailPanel
+          user={selectedUser}
+          visits={allVisits.filter(v => v.userId === selectedUser.email).sort((a, b) => new Date(b.date || b.serverTimestamp) - new Date(a.date || a.serverTimestamp))}
+          onClose={() => setSelectedUser(null)}
+        />
+      )}
     </div>
   )
 }
@@ -806,4 +912,362 @@ function formatTimeAgo(dateStr) {
   const days = Math.floor(hours / 24)
   if (days < 7) return `${days}h lalu`
   return new Date(dateStr).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+}
+
+function UserDetailPanel({ user, visits, onClose }) {
+  const totalTime = visits.reduce((s, v) => s + (v.duration || 0), 0)
+  const todayStr = new Date().toDateString()
+  const todayVisits = visits.filter(v => new Date(v.date || v.serverTimestamp).toDateString() === todayStr)
+  const todayTime = todayVisits.reduce((s, v) => s + (v.duration || 0), 0)
+
+  // Waktu per halaman
+  const pageTimeMap = {}
+  visits.forEach(v => {
+    if (!pageTimeMap[v.label]) pageTimeMap[v.label] = 0
+    pageTimeMap[v.label] += v.duration || 0
+  })
+  const pageTimeData = Object.entries(pageTimeMap)
+    .map(([name, duration]) => ({ name, duration }))
+    .sort((a, b) => b.duration - a.duration)
+    .slice(0, 7)
+
+  // Waktu per hari (7 hari terakhir)
+  const dailyTimeMap = {}
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    const label = d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' })
+    dailyTimeMap[d.toDateString()] = { label, duration: 0 }
+  }
+  visits.forEach(v => {
+    const ds = new Date(v.date || v.serverTimestamp).toDateString()
+    if (dailyTimeMap[ds]) dailyTimeMap[ds].duration += v.duration || 0
+  })
+  const dailyTimeData = Object.values(dailyTimeMap)
+
+  const tryouts = user.progress?.tryoutHistory || []
+  const latihanList = user.progress?.latihanHistory || []
+  const completedMath = user.progress?.completedChapters?.math || []
+  const completedEng = user.progress?.completedChapters?.english || []
+  const streak = user.progress?.streak || 0
+
+  // Rata-rata skor latihan per subject (gunakan l.percent, bukan l.score yg berupa raw count)
+  const mathLatihan = latihanList.filter(l => l.subject === 'matematika')
+  const engLatihan = latihanList.filter(l => l.subject === 'english')
+  const avgMathScore = mathLatihan.length
+    ? Math.round(mathLatihan.reduce((s, l) => s + (l.percent || 0), 0) / mathLatihan.length)
+    : null
+  const avgEngScore = engLatihan.length
+    ? Math.round(engLatihan.reduce((s, l) => s + (l.percent || 0), 0) / engLatihan.length)
+    : null
+
+  return (
+    <div className="fixed inset-0 z-50 flex">
+      <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative ml-auto w-full max-w-lg bg-white h-full flex flex-col shadow-2xl">
+
+        {/* Sticky Header */}
+        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100 bg-white flex-shrink-0">
+          <div>
+            <h2 className="font-heading font-bold text-lg text-gray-900">Detail Aktivitas User</h2>
+            <p className="text-xs text-gray-400">Data belajar & aktivitas lengkap</p>
+          </div>
+          <button onClick={onClose} className="p-2 rounded-xl text-gray-400 hover:bg-gray-100 hover:text-gray-700 transition-colors">
+            <X size={18} />
+          </button>
+        </div>
+
+        {/* Scrollable Content */}
+        <div className="flex-1 overflow-y-auto p-5 space-y-4">
+
+          {/* === User Profile Card === */}
+          <div className="bg-gradient-to-br from-blue-50 to-indigo-50 border border-blue-100 rounded-2xl p-4">
+            <div className="flex items-center gap-4">
+              <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-500 to-blue-700 flex items-center justify-center text-white font-bold text-xl shadow-lg flex-shrink-0">
+                {user.avatar || user.name?.charAt(0) || '?'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <h3 className="font-heading font-bold text-gray-900 text-base truncate">{user.name}</h3>
+                <p className="text-xs text-gray-500 truncate">{user.email}</p>
+                {user.target && <p className="text-xs text-blue-600 mt-0.5 font-medium">🎯 Target: {user.target}</p>}
+              </div>
+            </div>
+            <div className="grid grid-cols-3 gap-2 mt-4">
+              <div className="bg-white/70 rounded-xl p-2.5 text-center">
+                <p className="text-[10px] text-gray-400 font-medium">Bergabung</p>
+                <p className="text-xs font-bold text-gray-700 mt-0.5">
+                  {user.createdAt ? new Date(user.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'}
+                </p>
+              </div>
+              <div className="bg-white/70 rounded-xl p-2.5 text-center">
+                <p className="text-[10px] text-gray-400 font-medium">Terakhir Aktif</p>
+                <p className="text-xs font-bold text-gray-700 mt-0.5">{formatTimeAgo(user.progress?.lastActive)}</p>
+              </div>
+              <div className="bg-white/70 rounded-xl p-2.5 text-center">
+                <p className="text-[10px] text-gray-400 font-medium">Streak</p>
+                <p className="text-xs font-bold text-orange-600 mt-0.5">🔥 {streak} hari</p>
+              </div>
+            </div>
+          </div>
+
+          {/* === Progress Belajar === */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <h4 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+              <BookOpen size={15} className="text-blue-600" />
+              Progress Belajar
+            </h4>
+            <div className="space-y-4">
+              {/* Matematika */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-gray-600">Matematika</span>
+                  <span className="text-xs font-bold text-blue-700">{user.progress?.mathProgress || 0}%</span>
+                </div>
+                <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-blue-500 to-blue-600 rounded-full transition-all" style={{ width: `${user.progress?.mathProgress || 0}%` }} />
+                </div>
+                <div className="flex items-center justify-between mt-1.5">
+                  {completedMath.length > 0 ? (
+                    <p className="text-[10px] text-gray-400">✓ {completedMath.join(' · ')}</p>
+                  ) : (
+                    <p className="text-[10px] text-gray-300">Belum ada bab selesai</p>
+                  )}
+                  {avgMathScore !== null && (
+                    <span className="text-[10px] bg-blue-50 text-blue-700 px-2 py-0.5 rounded-lg font-semibold">Avg latihan: {avgMathScore}%</span>
+                  )}
+                </div>
+              </div>
+              {/* English */}
+              <div>
+                <div className="flex items-center justify-between mb-1.5">
+                  <span className="text-xs font-semibold text-gray-600">Bahasa Inggris</span>
+                  <span className="text-xs font-bold text-emerald-700">{user.progress?.englishProgress || 0}%</span>
+                </div>
+                <div className="w-full h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full transition-all" style={{ width: `${user.progress?.englishProgress || 0}%` }} />
+                </div>
+                <div className="flex items-center justify-between mt-1.5">
+                  {completedEng.length > 0 ? (
+                    <p className="text-[10px] text-gray-400">✓ {completedEng.join(' · ')}</p>
+                  ) : (
+                    <p className="text-[10px] text-gray-300">Belum ada bab selesai</p>
+                  )}
+                  {avgEngScore !== null && (
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-lg font-semibold">Avg latihan: {avgEngScore}%</span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* === Waktu Belajar === */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <h4 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+              <Clock size={15} className="text-emerald-600" />
+              Waktu Belajar
+            </h4>
+            {/* Summary */}
+            <div className="grid grid-cols-2 gap-3 mb-4">
+              <div className="bg-emerald-50 rounded-xl p-3">
+                <p className="text-[10px] text-emerald-600 font-medium">Total Waktu</p>
+                <p className="text-lg font-bold text-emerald-800 mt-0.5">{formatDuration(totalTime)}</p>
+                <p className="text-[10px] text-emerald-500">{visits.length} sesi tercatat</p>
+              </div>
+              <div className={`rounded-xl p-3 ${todayTime > 0 ? 'bg-blue-50' : 'bg-gray-50'}`}>
+                <p className={`text-[10px] font-medium ${todayTime > 0 ? 'text-blue-600' : 'text-gray-400'}`}>Hari Ini</p>
+                <p className={`text-lg font-bold mt-0.5 ${todayTime > 0 ? 'text-blue-800' : 'text-gray-400'}`}>
+                  {todayTime > 0 ? formatDuration(todayTime) : '—'}
+                </p>
+                <p className={`text-[10px] ${todayTime > 0 ? 'text-blue-500' : 'text-gray-300'}`}>
+                  {todayTime > 0 ? `${todayVisits.length} sesi hari ini` : 'Belum aktif hari ini'}
+                </p>
+              </div>
+            </div>
+
+            {/* Grafik waktu 7 hari */}
+            <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Aktivitas 7 Hari Terakhir</p>
+            <div className="flex items-end gap-1 h-16 mb-3">
+              {dailyTimeData.map((d, i) => {
+                const maxDur = Math.max(...dailyTimeData.map(x => x.duration), 1)
+                const pct = (d.duration / maxDur) * 100
+                const isToday = i === 6
+                return (
+                  <div key={i} className="flex-1 flex flex-col items-center gap-1">
+                    <div className="w-full flex items-end justify-center" style={{ height: '48px' }}>
+                      <div
+                        className={`w-full rounded-t-sm transition-all ${isToday ? 'bg-blue-500' : d.duration > 0 ? 'bg-blue-200' : 'bg-gray-100'}`}
+                        style={{ height: `${Math.max(pct, d.duration > 0 ? 8 : 4)}%` }}
+                        title={`${d.label}: ${formatDuration(d.duration)}`}
+                      />
+                    </div>
+                    <span className="text-[8px] text-gray-400 truncate w-full text-center">{d.label.split(' ')[0]}</span>
+                  </div>
+                )
+              })}
+            </div>
+
+            {/* Waktu per halaman */}
+            {pageTimeData.length > 0 && (
+              <>
+                <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Waktu per Halaman</p>
+                <div className="space-y-2">
+                  {pageTimeData.map((p, i) => (
+                    <div key={i} className="flex items-center gap-2">
+                      <span className="text-xs text-gray-500 w-32 truncate flex-shrink-0">{p.name}</span>
+                      <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-blue-400 to-blue-600 rounded-full"
+                          style={{ width: `${(p.duration / pageTimeData[0].duration) * 100}%` }}
+                        />
+                      </div>
+                      <span className="text-[10px] font-semibold text-gray-500 w-12 text-right flex-shrink-0">{formatDuration(p.duration)}</span>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* === Riwayat Tryout === */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <h4 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+              <Award size={15} className="text-amber-500" />
+              Riwayat Tryout
+              <span className="ml-auto text-xs font-normal text-gray-400">{tryouts.length} sesi</span>
+            </h4>
+            {tryouts.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-4">Belum ada tryout yang dikerjakan</p>
+            ) : (
+              <>
+                {/* Skor tertinggi & terakhir */}
+                <div className="grid grid-cols-2 gap-2 mb-3">
+                  <div className="bg-amber-50 rounded-xl p-2.5 text-center">
+                    <p className="text-[10px] text-amber-600 font-medium">Skor Tertinggi</p>
+                    <p className="text-base font-bold text-amber-800">
+                      {Math.max(...tryouts.map(t => t.scaledScore || t.score || 0))}
+                      <span className="text-[10px] font-normal text-gray-400">/800</span>
+                    </p>
+                  </div>
+                  <div className="bg-blue-50 rounded-xl p-2.5 text-center">
+                    <p className="text-[10px] text-blue-600 font-medium">Skor Terakhir</p>
+                    <p className="text-base font-bold text-blue-800">
+                      {tryouts[tryouts.length - 1]?.scaledScore || tryouts[tryouts.length - 1]?.score || '—'}
+                      <span className="text-[10px] font-normal text-gray-400">/800</span>
+                    </p>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  {[...tryouts].reverse().slice(0, 6).map((t, i) => (
+                    <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                      <div className="w-7 h-7 rounded-lg bg-amber-100 flex items-center justify-center flex-shrink-0">
+                        <span className="text-[10px] font-bold text-amber-700">#{tryouts.length - i}</span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-[10px] text-gray-400">
+                          {t.date ? new Date(t.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit', hour: '2-digit', minute: '2-digit' }) : '—'}
+                        </p>
+                        {t.mathScore !== undefined && (
+                          <p className="text-[10px] text-gray-400">Mat: {t.mathScore} · Ing: {t.engScore}</p>
+                        )}
+                      </div>
+                      <div className="text-right">
+                        <p className={`font-bold text-sm ${(t.scaledScore || t.score || 0) >= 600 ? 'text-green-600' : (t.scaledScore || t.score || 0) >= 400 ? 'text-amber-600' : 'text-red-500'}`}>
+                          {t.scaledScore || t.score || '—'}
+                          <span className="text-[10px] font-normal text-gray-400">/800</span>
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+
+          {/* === Riwayat Latihan === */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <h4 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+              <Target size={15} className="text-violet-500" />
+              Riwayat Latihan
+              <span className="ml-auto text-xs font-normal text-gray-400">{latihanList.length} sesi</span>
+            </h4>
+            {/* Stats per subject */}
+            {(mathLatihan.length > 0 || engLatihan.length > 0) && (
+              <div className="grid grid-cols-2 gap-2 mb-3">
+                <div className="bg-blue-50 rounded-xl p-2.5 text-center">
+                  <p className="text-[10px] text-blue-600 font-medium">Matematika</p>
+                  <p className="text-sm font-bold text-blue-800">{mathLatihan.length}x</p>
+                  {avgMathScore !== null && <p className="text-[10px] text-blue-500">Avg: {avgMathScore}%</p>}
+                </div>
+                <div className="bg-emerald-50 rounded-xl p-2.5 text-center">
+                  <p className="text-[10px] text-emerald-600 font-medium">Bahasa Inggris</p>
+                  <p className="text-sm font-bold text-emerald-800">{engLatihan.length}x</p>
+                  {avgEngScore !== null && <p className="text-[10px] text-emerald-500">Avg: {avgEngScore}%</p>}
+                </div>
+              </div>
+            )}
+            {latihanList.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-4">Belum ada latihan soal yang dikerjakan</p>
+            ) : (
+              <div className="space-y-2">
+                {[...latihanList].reverse().slice(0, 8).map((l, i) => (
+                  <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${l.subject === 'matematika' ? 'bg-blue-100' : 'bg-emerald-100'}`}>
+                      <span className={`text-[10px] font-bold ${l.subject === 'matematika' ? 'text-blue-700' : 'text-emerald-700'}`}>
+                        {l.subject === 'matematika' ? 'M' : 'E'}
+                      </span>
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-xs font-medium text-gray-700 capitalize">{l.subject || '—'}</p>
+                      <p className="text-[10px] text-gray-400">
+                        {l.date ? new Date(l.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-sm" style={{ color: (l.percent || 0) >= 70 ? '#059669' : (l.percent || 0) >= 50 ? '#D97706' : '#DC2626' }}>
+                        {l.percent !== undefined ? `${l.percent}%` : '—'}
+                      </p>
+                      {l.score !== undefined && l.total !== undefined && (
+                        <p className="text-[10px] text-gray-400">{l.score}/{l.total} benar</p>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* === Aktivitas Terakhir (Page Visits) === */}
+          <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+            <h4 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+              <Activity size={15} className="text-blue-500" />
+              Halaman yang Dikunjungi
+              <span className="ml-auto text-xs font-normal text-gray-400">{visits.length} kunjungan</span>
+            </h4>
+            {visits.length === 0 ? (
+              <p className="text-xs text-gray-400 text-center py-4">Belum ada aktivitas halaman tercatat</p>
+            ) : (
+              <div className="space-y-1.5">
+                {visits.slice(0, 10).map((v, i) => (
+                  <div key={i} className="flex items-center gap-3 py-1.5 border-b border-gray-50 last:border-0">
+                    <div className={`w-2 h-2 rounded-full flex-shrink-0 ${v.duration > 120 ? 'bg-green-400' : v.duration > 30 ? 'bg-amber-400' : 'bg-gray-300'}`} />
+                    <span className="text-xs text-gray-700 flex-1 truncate">{v.label}</span>
+                    <span className={`text-xs font-semibold flex-shrink-0 ${v.duration > 120 ? 'text-green-600' : v.duration > 30 ? 'text-amber-600' : 'text-gray-400'}`}>
+                      {formatDuration(v.duration)}
+                    </span>
+                    <span className="text-[10px] text-gray-300 whitespace-nowrap flex-shrink-0">
+                      {new Date(v.date || v.serverTimestamp).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                    </span>
+                  </div>
+                ))}
+                {visits.length > 10 && (
+                  <p className="text-[10px] text-gray-400 text-center pt-1">+{visits.length - 10} kunjungan lainnya</p>
+                )}
+              </div>
+            )}
+          </div>
+
+        </div>
+      </div>
+    </div>
+  )
 }

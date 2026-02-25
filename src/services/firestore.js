@@ -5,7 +5,7 @@
  */
 import { db, isFirebaseConfigured } from '../firebase'
 import {
-  doc, setDoc, collection, addDoc,
+  doc, getDoc, setDoc, deleteDoc, collection, addDoc,
   getDocs, query, orderBy, limit, onSnapshot,
 } from 'firebase/firestore'
 
@@ -18,11 +18,17 @@ const encodeEmail = (email) => email.replace(/\./g, ',')
 
 /**
  * Tulis/update data user ke Firestore.
- * Dipanggil saat: register, login, update progress, save hasil latihan/tryout.
+ * Menyimpan struktur nested `progress` agar kompatibel dengan Admin panel.
  */
 export async function syncUserToFirestore(email, userData) {
-  if (!isFirebaseConfigured || !db) return
+  if (!isFirebaseConfigured || !db) {
+    console.error('[GradPrep] Firebase NOT configured — sync skipped for:', email)
+    return false
+  }
   try {
+    const now = new Date().toISOString()
+    const latihanHistory = userData.progress?.latihanHistory || []
+    const tryoutHistory = userData.progress?.tryoutHistory || []
     await setDoc(
       doc(db, 'users', encodeEmail(email)),
       {
@@ -31,21 +37,47 @@ export async function syncUserToFirestore(email, userData) {
         target: userData.target || '',
         avatar: userData.avatar || '',
         isAdmin: userData.isAdmin || false,
-        createdAt: userData.createdAt || new Date().toISOString(),
-        lastActive: new Date().toISOString(),
+        createdAt: userData.createdAt || now,
+        // Top-level lastActive untuk ordering query
+        lastActive: now,
+        // Nested progress object — Admin.jsx membaca u.progress.*
+        progress: {
+          lastActive: now,
+          mathProgress: userData.progress?.mathProgress || 0,
+          englishProgress: userData.progress?.englishProgress || 0,
+          lastTryoutScore: userData.progress?.lastTryoutScore || 0,
+          latihanHistory: latihanHistory.slice(0, 20),
+          tryoutHistory: tryoutHistory.slice(0, 20),
+          completedChapters: userData.progress?.completedChapters || { math: [], english: [] },
+          chapterQuizScores: userData.progress?.chapterQuizScores || {},
+          streak: userData.progress?.streak || 0,
+          totalStudyTime: userData.progress?.totalStudyTime || 0,
+        },
+        // Flat summary fields untuk query/filter mudah
         mathProgress: userData.progress?.mathProgress || 0,
         englishProgress: userData.progress?.englishProgress || 0,
         lastTryoutScore: userData.progress?.lastTryoutScore || 0,
-        latihanCount: (userData.progress?.latihanHistory || []).length,
-        tryoutCount: (userData.progress?.tryoutHistory || []).length,
-        // Simpan riwayat terakhir (5 entry) untuk preview
-        recentLatihan: (userData.progress?.latihanHistory || []).slice(0, 5),
-        recentTryout: (userData.progress?.tryoutHistory || []).slice(0, 5),
+        latihanCount: latihanHistory.length,
+        tryoutCount: tryoutHistory.length,
       },
       { merge: true }
     )
+    return true
   } catch (e) {
-    console.warn('[GradPrep] Firestore user sync failed:', e.message)
+    console.error('[GradPrep] Firestore user sync FAILED:', email, e.message)
+    return false
+  }
+}
+
+/**
+ * Hapus user dari Firestore (admin only).
+ */
+export async function deleteUserFromFirestore(email) {
+  if (!isFirebaseConfigured || !db) return
+  try {
+    await deleteDoc(doc(db, 'users', encodeEmail(email)))
+  } catch (e) {
+    console.warn('[GradPrep] Firestore delete user failed:', e.message)
   }
 }
 
@@ -61,7 +93,7 @@ export async function getAllUsersFromFirestore() {
     )
     return snapshot.docs
       .map(d => ({ id: d.id, ...d.data() }))
-      .filter(u => !u.isAdmin) // sembunyikan admin dari daftar user
+      .filter(u => !u.isAdmin)
   } catch (e) {
     console.warn('[GradPrep] Firestore getAllUsers failed:', e.message)
     return null
@@ -70,6 +102,7 @@ export async function getAllUsersFromFirestore() {
 
 /**
  * Real-time listener untuk user list (admin dashboard live update).
+ * Langsung getDocs dulu agar data muncul cepat, lalu onSnapshot untuk real-time.
  * Return unsubscribe function.
  */
 export function listenToUsers(callback) {
@@ -78,6 +111,18 @@ export function listenToUsers(callback) {
     return () => {}
   }
   const q = query(collection(db, 'users'), orderBy('lastActive', 'desc'))
+
+  // Ambil data awal secara cepat (tanpa menunggu WebSocket)
+  getDocs(q)
+    .then((snapshot) => {
+      const users = snapshot.docs
+        .map(d => ({ id: d.id, ...d.data() }))
+        .filter(u => !u.isAdmin)
+      callback(users)
+    })
+    .catch(() => {})
+
+  // Set up real-time listener (WebSocket — update otomatis setelahnya)
   return onSnapshot(q, (snapshot) => {
     const users = snapshot.docs
       .map(d => ({ id: d.id, ...d.data() }))
@@ -149,4 +194,39 @@ export function listenToPageVisits(callback, limitCount = 200) {
     console.warn('[GradPrep] Firestore pageVisits listener error:', e.message)
     callback(null)
   })
+}
+
+// ─────────────────────────────────────────────
+// FORCE LOGOUT (SESSION INVALIDATION)
+// ─────────────────────────────────────────────
+
+/**
+ * Admin: set timestamp force logout global.
+ * Semua user yang session-nya lebih lama dari timestamp ini akan auto-logout.
+ */
+export async function setForceLogoutTimestamp() {
+  if (!isFirebaseConfigured || !db) return
+  try {
+    await setDoc(
+      doc(db, 'config', 'global'),
+      { forceLogoutAt: new Date().toISOString() },
+      { merge: true }
+    )
+  } catch (e) {
+    console.warn('[GradPrep] Force logout set failed:', e.message)
+  }
+}
+
+/**
+ * Cek timestamp force logout dari Firestore.
+ * Return ISO string atau null jika belum pernah di-set.
+ */
+export async function getForceLogoutTimestamp() {
+  if (!isFirebaseConfigured || !db) return null
+  try {
+    const snap = await getDoc(doc(db, 'config', 'global'))
+    return snap.exists() ? (snap.data().forceLogoutAt || null) : null
+  } catch {
+    return null
+  }
 }

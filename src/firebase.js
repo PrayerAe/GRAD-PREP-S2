@@ -1,39 +1,31 @@
 /**
  * Firebase Configuration
- * Isi nilai dari: https://console.firebase.google.com
- * Project Settings → General → Your apps → Web app → SDK setup
- *
- * Letakkan di file .env.local:
- *   VITE_FIREBASE_API_KEY=xxx
- *   VITE_FIREBASE_AUTH_DOMAIN=xxx
- *   VITE_FIREBASE_PROJECT_ID=xxx
- *   VITE_FIREBASE_STORAGE_BUCKET=xxx
- *   VITE_FIREBASE_MESSAGING_SENDER_ID=xxx
- *   VITE_FIREBASE_APP_ID=xxx
+ * Hardcoded config — Firebase API key adalah client-side identifier, bukan secret.
+ * Keamanan ditangani oleh Firestore Security Rules di Firebase Console.
  */
 import { initializeApp } from 'firebase/app'
 import { getFirestore } from 'firebase/firestore'
 
-const projectId = import.meta.env.VITE_FIREBASE_PROJECT_ID
-
-export const isFirebaseConfigured = !!projectId
-
-let db = null
-
-if (isFirebaseConfigured) {
-  try {
-    const app = initializeApp({
-      apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
-      authDomain: import.meta.env.VITE_FIREBASE_AUTH_DOMAIN,
-      projectId,
-      storageBucket: import.meta.env.VITE_FIREBASE_STORAGE_BUCKET,
-      messagingSenderId: import.meta.env.VITE_FIREBASE_MESSAGING_SENDER_ID,
-      appId: import.meta.env.VITE_FIREBASE_APP_ID,
-    })
-    db = getFirestore(app)
-  } catch (e) {
-    console.warn('[GradPrep] Firebase init failed:', e.message)
-  }
+const firebaseConfig = {
+  apiKey: 'AIzaSyB6uGR4TxH4-XRVVVjxH9I0ngULiTjQadg',
+  authDomain: 'gradprep-s2.firebaseapp.com',
+  projectId: 'gradprep-s2',
+  storageBucket: 'gradprep-s2.firebasestorage.app',
+  messagingSenderId: '81120998146',
+  appId: '1:81120998146:web:97d658a88074be8cb7081b',
 }
 
-export { db }
+let app = null
+let db = null
+let initError = null
+
+try {
+  app = initializeApp(firebaseConfig)
+  db = getFirestore(app)
+} catch (e) {
+  initError = e.message
+  console.error('[GradPrep] Firebase init FAILED:', e.message)
+}
+
+export const isFirebaseConfigured = !!db
+export { db, initError }

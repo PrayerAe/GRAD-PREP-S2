@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
-import { syncUserToFirestore } from '../services/firestore'
+import { syncUserToFirestore, deleteUserFromFirestore, getForceLogoutTimestamp } from '../services/firestore'
 
 const AuthContext = createContext(null)
 
@@ -29,8 +29,49 @@ function loadSession() {
 }
 
 function saveSession(session) {
-  if (session) localStorage.setItem(STORAGE_KEYS.session, JSON.stringify(session))
+  if (session) localStorage.setItem(STORAGE_KEYS.session, JSON.stringify({ ...session, loggedInAt: new Date().toISOString() }))
   else localStorage.removeItem(STORAGE_KEYS.session)
+}
+
+// ---- Retry + pending sync queue ----
+const PENDING_SYNC_KEY = 'gradprep_pending_sync'
+
+async function syncWithRetry(email, userData, retries = 3) {
+  for (let i = 0; i < retries; i++) {
+    const ok = await syncUserToFirestore(email, userData)
+    if (ok) return true
+    // Tunggu sebelum retry (2s, 4s, 6s)
+    if (i < retries - 1) await new Promise(r => setTimeout(r, 2000 * (i + 1)))
+  }
+  // Semua retry gagal → simpan ke pending queue
+  try {
+    const pending = JSON.parse(localStorage.getItem(PENDING_SYNC_KEY) || '[]')
+    if (!pending.includes(email)) {
+      pending.push(email)
+      localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(pending))
+    }
+  } catch {}
+  return false
+}
+
+function processPendingSync() {
+  try {
+    const pending = JSON.parse(localStorage.getItem(PENDING_SYNC_KEY) || '[]')
+    if (pending.length === 0) return
+    const users = loadUsers()
+    const remaining = []
+    pending.forEach(email => {
+      const userData = users[email]
+      if (userData && !userData.isAdmin) {
+        syncUserToFirestore(email, userData).then(ok => {
+          if (!ok) remaining.push(email)
+          localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify(remaining))
+        })
+      }
+    })
+    // Langsung kosongkan — sisa gagal akan diisi ulang oleh callback di atas
+    localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify([]))
+  } catch {}
 }
 
 function createDefaultProgress() {
@@ -69,17 +110,38 @@ export function AuthProvider({ children }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    // Ensure admin account always exists
     const users = seedAdminAccount(loadUsers())
-
     const session = loadSession()
-    if (session) {
-      const userData = users[session.email]
-      if (userData) {
-        setUser({ ...userData, email: session.email })
+
+    const restoreSession = (email, userData) => {
+      setUser({ ...userData, email })
+      if (!userData.isAdmin) {
+        userData.progress.lastActive = new Date().toISOString()
+        users[email] = userData
+        saveUsers(users)
+        syncWithRetry(email, userData)
       }
     }
+
+    // Process pending sync queue dari session sebelumnya yang gagal
+    processPendingSync()
+
+    // Restore session langsung dari localStorage (tidak tunggu Firestore → app cepat)
+    const userData = users[session?.email]
+    if (session && userData) restoreSession(session.email, userData)
     setLoading(false)
+
+    if (!session) return
+
+    // Cek force logout di background (non-blocking)
+    getForceLogoutTimestamp()
+      .then((forceLogoutAt) => {
+        if (forceLogoutAt && (!session.loggedInAt || session.loggedInAt < forceLogoutAt)) {
+          saveSession(null)
+          setUser(null)
+        }
+      })
+      .catch(() => {})
   }, [])
 
   const register = (name, email, password) => {
@@ -100,8 +162,8 @@ export function AuthProvider({ children }) {
     saveUsers(users)
     saveSession({ email })
     setUser({ ...newUser, email })
-    // Sync to Firestore (cross-device)
-    syncUserToFirestore(email, newUser)
+    // Sync to Firestore with retry (cross-device)
+    syncWithRetry(email, newUser)
     return { ok: true }
   }
 
@@ -116,8 +178,8 @@ export function AuthProvider({ children }) {
     saveUsers(users)
     saveSession({ email })
     setUser({ ...userData, email })
-    // Sync to Firestore (cross-device)
-    syncUserToFirestore(email, userData)
+    // Sync to Firestore with retry (cross-device)
+    syncWithRetry(email, userData)
     return { ok: true, isAdmin: !!userData.isAdmin }
   }
 
@@ -134,6 +196,7 @@ export function AuthProvider({ children }) {
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
+    if (!userData.isAdmin) syncWithRetry(user.email, userData)
   }
 
   const updateProgress = (updates) => {
@@ -144,6 +207,7 @@ export function AuthProvider({ children }) {
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
+    if (!userData.isAdmin) syncWithRetry(user.email, userData)
   }
 
   const saveQuizScore = (quizId, score, total) => {
@@ -154,6 +218,7 @@ export function AuthProvider({ children }) {
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
+    if (!userData.isAdmin) syncWithRetry(user.email, userData)
   }
 
   const saveLatihanResult = (subject, score, total, topicBreakdown) => {
@@ -175,7 +240,7 @@ export function AuthProvider({ children }) {
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
-    syncUserToFirestore(user.email, userData)
+    syncWithRetry(user.email, userData)
   }
 
   const saveTryoutResult = (scaledScore, mathScore, mathTotal, engScore, engTotal) => {
@@ -193,7 +258,7 @@ export function AuthProvider({ children }) {
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
-    syncUserToFirestore(user.email, userData)
+    syncWithRetry(user.email, userData)
   }
 
   const markChapterComplete = (subject, chapterId) => {
@@ -212,6 +277,7 @@ export function AuthProvider({ children }) {
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
+    syncWithRetry(user.email, userData)
   }
 
   // ---- Admin-only functions ----
@@ -228,6 +294,7 @@ export function AuthProvider({ children }) {
     const users = loadUsers()
     delete users[email]
     saveUsers(users)
+    deleteUserFromFirestore(email)
   }
 
   return (
