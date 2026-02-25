@@ -1,12 +1,14 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { getAnalyticsSummary, formatDuration, loadAnalytics } from '../utils/analytics'
+import { getAnalyticsSummary, formatDuration } from '../utils/analytics'
+import { isFirebaseConfigured } from '../firebase'
+import { listenToUsers, listenToPageVisits } from '../services/firestore'
 import {
   Users, Activity, Clock, Monitor, Smartphone, Tablet,
   BarChart2, Globe, Search, LogOut, RefreshCw, Trash2,
   TrendingUp, Target, BookOpen, ChevronDown, ChevronUp,
-  Shield, Eye, Calendar, Chrome, Menu, X, Award
+  Shield, Eye, Calendar, Menu, X, Award, Wifi, WifiOff
 } from 'lucide-react'
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -73,8 +75,71 @@ export default function Admin() {
   const [confirmDelete, setConfirmDelete] = useState(null)
   const [mobileSidebar, setMobileSidebar] = useState(false)
 
-  const analytics = useMemo(() => getAnalyticsSummary(), [refreshKey])
-  const allUsers = useMemo(() => getAllUsers(), [refreshKey])
+  // Firestore real-time state
+  const [firestoreUsers, setFirestoreUsers] = useState(null)   // null = belum dimuat
+  const [firestoreVisits, setFirestoreVisits] = useState(null) // null = belum dimuat
+  const [liveConnected, setLiveConnected] = useState(false)
+
+  // Local fallback
+  const localAnalytics = useMemo(() => getAnalyticsSummary(), [refreshKey])
+  const localUsers = useMemo(() => getAllUsers(), [refreshKey])
+
+  // Subscribe Firestore real-time listeners jika Firebase terkonfigurasi
+  useEffect(() => {
+    if (!isFirebaseConfigured) return
+
+    const unsubUsers = listenToUsers((users) => {
+      setFirestoreUsers(users)
+      setLiveConnected(users !== null)
+    })
+    const unsubVisits = listenToPageVisits((visits) => {
+      setFirestoreVisits(visits)
+    }, 500)
+
+    return () => {
+      unsubUsers()
+      unsubVisits()
+    }
+  }, [])
+
+  // Gunakan data Firestore jika tersedia, fallback ke localStorage
+  const allUsers = firestoreUsers !== null ? firestoreUsers : localUsers
+  const allVisits = firestoreVisits !== null ? firestoreVisits : localAnalytics.recentVisits
+
+  // Hitung ulang analytics summary dari data Firestore
+  const analytics = useMemo(() => {
+    if (firestoreVisits === null) return localAnalytics
+    // Build summary dari Firestore visits
+    const visits = firestoreVisits
+    const deviceMap = {}, browserMap = {}, osMap = {}, pageMap = {}
+    let totalDuration = 0
+    const today = new Date().toDateString()
+    let todaySessions = 0
+
+    visits.forEach(v => {
+      deviceMap[v.device] = (deviceMap[v.device] || 0) + 1
+      browserMap[v.browser] = (browserMap[v.browser] || 0) + 1
+      if (v.os) osMap[v.os] = (osMap[v.os] || 0) + 1
+      totalDuration += v.duration || 0
+      if (!pageMap[v.label]) pageMap[v.label] = { visits: 0, totalDuration: 0 }
+      pageMap[v.label].visits += 1
+      pageMap[v.label].totalDuration += v.duration || 0
+      if (new Date(v.date || v.serverTimestamp).toDateString() === today) todaySessions++
+    })
+
+    return {
+      totalVisits: visits.length,
+      todaySessions,
+      avgDuration: visits.length ? Math.round(totalDuration / visits.length) : 0,
+      deviceStats: Object.entries(deviceMap).map(([name, value]) => ({ name, value })),
+      browserStats: Object.entries(browserMap).map(([name, value]) => ({ name, value })),
+      osStats: Object.entries(osMap).map(([name, value]) => ({ name, value })),
+      pageStats: Object.entries(pageMap)
+        .map(([name, d]) => ({ name, visits: d.visits, avgDuration: Math.round(d.totalDuration / d.visits) }))
+        .sort((a, b) => b.visits - a.visits),
+      recentVisits: visits.slice(0, 100),
+    }
+  }, [firestoreVisits, localAnalytics])
 
   const handleRefresh = () => setRefreshKey(k => k + 1)
 
@@ -269,6 +334,18 @@ export default function Admin() {
               <h1 className="font-heading font-bold text-xl text-gray-900 capitalize">{activeTab === 'overview' ? 'Overview' : activeTab === 'analytics' ? 'Page Analytics' : activeTab === 'users' ? 'User Management' : 'Session Log'}</h1>
               <p className="text-xs text-gray-400">Last updated: {new Date().toLocaleString('id-ID')}</p>
             </div>
+            {/* Firebase status badge */}
+            {isFirebaseConfigured ? (
+              <div className={`hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold ${liveConnected ? 'bg-green-50 text-green-700' : 'bg-amber-50 text-amber-700'}`}>
+                {liveConnected ? <Wifi size={13} /> : <WifiOff size={13} />}
+                {liveConnected ? 'Live (Cross-device)' : 'Connecting...'}
+              </div>
+            ) : (
+              <div className="hidden sm:flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold bg-orange-50 text-orange-700">
+                <WifiOff size={13} />
+                Lokal Only
+              </div>
+            )}
             <button
               onClick={handleRefresh}
               className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-50 text-blue-700 text-sm font-semibold hover:bg-blue-100 transition-colors"
@@ -641,7 +718,7 @@ export default function Admin() {
 
               {/* Recent Sessions Log */}
               <div className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6">
-                <SectionTitle icon={Clock} title="Log Sesi Terbaru" sub={`${analytics.recentVisits.length} sesi terakhir`} />
+                <SectionTitle icon={Clock} title="Log Sesi Terbaru" sub={`${allVisits.length} sesi${isFirebaseConfigured && liveConnected ? ' (semua device)' : ' (device ini)'}`} />
                 <div className="overflow-x-auto">
                   <table className="w-full text-sm">
                     <thead className="border-b border-gray-100">
@@ -652,13 +729,13 @@ export default function Admin() {
                       </tr>
                     </thead>
                     <tbody>
-                      {analytics.recentVisits.length === 0 ? (
+                      {allVisits.length === 0 ? (
                         <tr>
                           <td colSpan={7} className="py-16 text-center text-gray-400">
                             Belum ada data sesi. Navigasi halaman akan mulai merekam.
                           </td>
                         </tr>
-                      ) : analytics.recentVisits.map((v, i) => {
+                      ) : allVisits.map((v, i) => {
                         const DevIcon = DEVICE_ICONS[v.device] || Monitor
                         return (
                           <tr key={i} className="border-b border-gray-50 hover:bg-gray-50/50 transition-colors">

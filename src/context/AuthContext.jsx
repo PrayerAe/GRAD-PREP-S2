@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect } from 'react'
+import { syncUserToFirestore } from '../services/firestore'
 
 const AuthContext = createContext(null)
 
@@ -99,6 +100,8 @@ export function AuthProvider({ children }) {
     saveUsers(users)
     saveSession({ email })
     setUser({ ...newUser, email })
+    // Sync to Firestore (cross-device)
+    syncUserToFirestore(email, newUser)
     return { ok: true }
   }
 
@@ -113,7 +116,9 @@ export function AuthProvider({ children }) {
     saveUsers(users)
     saveSession({ email })
     setUser({ ...userData, email })
-    return { ok: true }
+    // Sync to Firestore (cross-device)
+    syncUserToFirestore(email, userData)
+    return { ok: true, isAdmin: !!userData.isAdmin }
   }
 
   const logout = () => {
@@ -170,6 +175,7 @@ export function AuthProvider({ children }) {
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
+    syncUserToFirestore(user.email, userData)
   }
 
   const saveTryoutResult = (scaledScore, mathScore, mathTotal, engScore, engTotal) => {
@@ -187,6 +193,7 @@ export function AuthProvider({ children }) {
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
+    syncUserToFirestore(user.email, userData)
   }
 
   const markChapterComplete = (subject, chapterId) => {

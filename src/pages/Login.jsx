@@ -23,6 +23,9 @@ export default function Login() {
       if (tab === 'login') {
         const res = login(email, password)
         if (!res.ok) { setError(res.error); setLoading(false); return }
+        setLoading(false)
+        navigate(res.isAdmin ? '/admin' : '/dashboard')
+        return
       } else {
         if (!name.trim()) { setError('Nama wajib diisi'); setLoading(false); return }
         if (password.length < 4) { setError('Password minimal 4 karakter'); setLoading(false); return }

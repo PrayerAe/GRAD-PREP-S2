@@ -2,7 +2,9 @@
  * GradPrep Analytics Utility
  * Tracks page visits, session duration, device & browser info
  * Stored in localStorage under 'gradprep_analytics'
+ * AND synced to Firestore (if configured) for cross-device admin visibility
  */
+import { syncPageVisitToFirestore } from '../services/firestore'
 
 export const ANALYTICS_KEY = 'gradprep_analytics'
 
@@ -91,9 +93,11 @@ export function recordPageVisit({ path, duration, userId }) {
     date: new Date().toISOString(),
     userId: userId || null,
   }
-  // Keep last 1000 visits
+  // 1. Save to localStorage (same device)
   analytics.pageVisits = [visit, ...(analytics.pageVisits || [])].slice(0, 1000)
   saveAnalytics(analytics)
+  // 2. Sync to Firestore (cross-device admin visibility)
+  syncPageVisitToFirestore(visit)
 }
 
 // --- Aggregate helpers (used by Admin panel) ---
