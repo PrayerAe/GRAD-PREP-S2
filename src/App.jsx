@@ -11,6 +11,7 @@ import English from './pages/English'
 import TOEFL from './pages/TOEFL'
 import IELTS from './pages/IELTS'
 import Vocabulary from './pages/Vocabulary'
+import ML from './pages/ML'
 import Latihan from './pages/Latihan'
 import Tryout from './pages/Tryout'
 import Profile from './pages/Profile'
@@ -30,6 +31,7 @@ function App() {
           <Route path="/materi/toefl" element={<ProtectedRoute><TOEFL /></ProtectedRoute>} />
           <Route path="/materi/ielts" element={<ProtectedRoute><IELTS /></ProtectedRoute>} />
           <Route path="/vocabulary" element={<ProtectedRoute><Vocabulary /></ProtectedRoute>} />
+          <Route path="/materi/ml" element={<ProtectedRoute><ML /></ProtectedRoute>} />
           <Route path="/latihan/:subject" element={<ProtectedRoute><Latihan /></ProtectedRoute>} />
           <Route path="/tryout" element={<ProtectedRoute><Tryout /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

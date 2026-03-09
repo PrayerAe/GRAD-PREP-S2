@@ -6,7 +6,7 @@ import ProgressBar from '../components/ProgressBar'
 import { getGrade } from '../components/ScoreCard'
 import {
   Menu, BookOpen, BookMarked, Target, TrendingUp, Clock,
-  Star, ArrowRight, Award, PenLine, Zap, Calendar, Headphones, Globe, Sparkles
+  Star, ArrowRight, Award, PenLine, Zap, Calendar, Headphones, Globe, Sparkles, Brain
 } from 'lucide-react'
 import {
   RadialBarChart, RadialBar, ResponsiveContainer, Legend,
@@ -212,6 +212,26 @@ export default function Dashboard() {
               </button>
             </div>
 
+            {/* ML & AI card */}
+            <div className="card border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 bg-gradient-to-br from-purple-500 to-violet-600 rounded-xl flex items-center justify-center shadow-lg shadow-purple-500/20">
+                  <Brain size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">ML & AI</h3>
+                  <p className="text-xs text-gray-500">5 Bab · Python · ML · Deep Learning · NLP</p>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 mb-3 bg-purple-50 rounded-lg px-3 py-2">CNN · LSTM · Transformers · BERT · GPT</div>
+              <button
+                onClick={() => navigate('/materi/ml')}
+                className="mt-2 w-full flex items-center justify-center gap-2 text-sm text-purple-700 font-semibold hover:bg-purple-50 py-2 rounded-xl transition-colors"
+              >
+                Mulai Belajar ML & AI <ArrowRight size={14} />
+              </button>
+            </div>
+
             {/* Vocabulary card */}
             <div className="card border border-gray-100">
               <div className="flex items-center gap-3 mb-4">
@@ -322,6 +342,7 @@ export default function Dashboard() {
                   { onClick: () => navigate('/materi/toefl'), icon: Headphones, iconColor: 'text-indigo-700', bg: 'bg-indigo-50 hover:bg-indigo-100', title: 'Belajar TOEFL', sub: 'Reading · Listening · Speaking · Writing' },
                   { onClick: () => navigate('/materi/ielts'), icon: Globe, iconColor: 'text-cyan-700', bg: 'bg-cyan-50 hover:bg-cyan-100', title: 'Belajar IELTS', sub: 'Listening · Reading · Writing · Speaking' },
                   { onClick: () => navigate('/vocabulary'), icon: Sparkles, iconColor: 'text-indigo-700', bg: 'bg-indigo-50 hover:bg-indigo-100', title: 'Vocabulary Builder', sub: '50 kata · Flashcard & Quiz' },
+                  { onClick: () => navigate('/materi/ml'), icon: Brain, iconColor: 'text-purple-700', bg: 'bg-purple-50 hover:bg-purple-100', title: 'ML & AI', sub: 'Python · ML · Deep Learning · NLP' },
                   { onClick: () => navigate('/latihan/matematika'), icon: PenLine, iconColor: 'text-purple-700', bg: 'bg-purple-50 hover:bg-purple-100', title: 'Latihan Soal', sub: 'Matematika & English' },
                   { onClick: () => navigate('/tryout'), icon: Target, iconColor: 'text-amber-700', bg: 'bg-amber-50 hover:bg-amber-100', title: 'Ikuti Tryout', sub: '80 soal · 90 menit' },
                 ].map(({ onClick, icon: Icon, iconColor, bg, title, sub }) => (
