@@ -83,8 +83,7 @@ export default function Latihan() {
     return { topic, topicQs, topicScore, pct, gradeInfo }
   })
 
-  const nilaiAkhir = Math.round((score / questions.length) * 100)
-  const gradeInfo = getGrade(nilaiAkhir)
+  const gradeInfo = getGrade(percent)
 
   // Save result on submit
   useEffect(() => {
@@ -123,7 +122,7 @@ export default function Latihan() {
               <ScoreCard score={score} total={questions.length} title={`Skor ${label}`} />
               <div className={`rounded-2xl border-2 p-6 text-center ${gradeInfo.bg}`}>
                 <p className="text-sm font-medium text-gray-500 mb-3">Nilai Akhir</p>
-                <div className={`text-7xl font-heading font-bold ${gradeInfo.color}`}>{nilaiAkhir}</div>
+                <div className={`text-7xl font-heading font-bold ${gradeInfo.color}`}>{percent}</div>
                 <p className="text-sm text-gray-500 mt-1">dari 100</p>
                 <div className="mt-3 flex items-center justify-center gap-2">
                   <span className="text-2xl">{gradeInfo.icon}</span>

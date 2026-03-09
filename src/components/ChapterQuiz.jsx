@@ -1,10 +1,29 @@
-import { useState } from 'react'
-import { CheckCircle, XCircle, RotateCcw, Award } from 'lucide-react'
+import { useState, useMemo, useCallback } from 'react'
+import { CheckCircle, XCircle, RotateCcw, Award, RefreshCw } from 'lucide-react'
 import { getGrade } from './ScoreCard'
 
-export default function ChapterQuiz({ title, questions }) {
+// Fisher-Yates shuffle
+function shuffleArray(arr) {
+  const a = [...arr]
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]]
+  }
+  return a
+}
+
+const QUIZ_SIZE = 5
+
+export default function ChapterQuiz({ title, questions: allQuestions, chapterId, onQuizSubmit }) {
   const [answers, setAnswers] = useState({})
   const [submitted, setSubmitted] = useState(false)
+  const [seed, setSeed] = useState(0) // triggers re-shuffle
+
+  // Pick random QUIZ_SIZE questions from the bank
+  const questions = useMemo(() => {
+    return shuffleArray(allQuestions).slice(0, QUIZ_SIZE)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [allQuestions, seed])
 
   const letters = ['A', 'B', 'C', 'D']
   const answered = Object.keys(answers).length
@@ -17,15 +36,25 @@ export default function ChapterQuiz({ title, questions }) {
     setSubmitted(false)
   }
 
+  const handleRefresh = useCallback(() => {
+    setAnswers({})
+    setSubmitted(false)
+    setSeed(s => s + 1)
+  }, [])
+
+  const hasMoreQuestions = allQuestions.length > QUIZ_SIZE
+
   return (
     <div className="mt-8 border-t-2 border-dashed border-blue-200 pt-8">
       <div className="flex items-center gap-3 mb-6">
         <div className="w-10 h-10 bg-amber-100 rounded-xl flex items-center justify-center">
           <Award size={20} className="text-amber-700" />
         </div>
-        <div>
+        <div className="flex-1">
           <h3 className="font-heading font-bold text-lg text-gray-900">Kuis: {title}</h3>
-          <p className="text-xs text-gray-500">{questions.length} soal · Uji pemahamanmu</p>
+          <p className="text-xs text-gray-500">
+            {QUIZ_SIZE} soal dari {allQuestions.length} bank soal · Uji pemahamanmu
+          </p>
         </div>
       </div>
 
@@ -107,7 +136,12 @@ export default function ChapterQuiz({ title, questions }) {
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-500">{answered}/{questions.length} dijawab</span>
             <button
-              onClick={() => setSubmitted(true)}
+              onClick={() => {
+                setSubmitted(true)
+                if (onQuizSubmit && chapterId) {
+                  onQuizSubmit(chapterId, score, questions.length)
+                }
+              }}
               disabled={answered === 0}
               className="btn-accent text-sm disabled:opacity-40 disabled:cursor-not-allowed"
             >
@@ -129,10 +163,18 @@ export default function ChapterQuiz({ title, questions }) {
                   </p>
                 </div>
               </div>
-              <button onClick={handleReset} className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 transition-colors">
-                <RotateCcw size={14} />
-                Ulangi
-              </button>
+              <div className="flex flex-col gap-2">
+                <button onClick={handleReset} className="flex items-center gap-1.5 text-sm font-medium text-gray-600 hover:text-blue-800 transition-colors">
+                  <RotateCcw size={14} />
+                  Ulangi
+                </button>
+                {hasMoreQuestions && (
+                  <button onClick={handleRefresh} className="flex items-center gap-1.5 text-sm font-medium text-blue-600 hover:text-blue-800 transition-colors">
+                    <RefreshCw size={14} />
+                    Soal Baru
+                  </button>
+                )}
+              </div>
             </div>
 
             {/* Mini breakdown */}
@@ -140,6 +182,13 @@ export default function ChapterQuiz({ title, questions }) {
               <span className="text-green-600 font-medium">✓ Benar: {score}</span>
               <span className="text-red-500 font-medium">✗ Salah: {questions.length - score}</span>
             </div>
+
+            {/* Info bank soal */}
+            {hasMoreQuestions && (
+              <p className="mt-2 text-[10px] text-gray-400">
+                Soal diambil acak dari {allQuestions.length} bank soal berbasis ujian masuk S2. Klik "Soal Baru" untuk latihan lagi.
+              </p>
+            )}
           </div>
         )}
       </div>

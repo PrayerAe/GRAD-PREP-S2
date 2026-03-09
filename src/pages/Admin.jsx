@@ -244,7 +244,10 @@ export default function Admin() {
   const userStats = useMemo(() => {
     const total = allUsers.length
     const today = new Date().toDateString()
-    const activeToday = allUsers.filter(u => u.progress?.lastActive && new Date(u.progress.lastActive).toDateString() === today).length
+    const activeToday = allUsers.filter(u =>
+      (u.progress?.lastActive && new Date(u.progress.lastActive).toDateString() === today) ||
+      (userTimeToday[u.email] > 0)
+    ).length
     const allTryouts = allUsers.flatMap(u => u.progress?.tryoutHistory || [])
     const avgTryout = allTryouts.length
       ? Math.round(allTryouts.reduce((s, t) => s + (t.scaledScore || 0), 0) / allTryouts.length)
@@ -252,7 +255,7 @@ export default function Admin() {
     const totalLatihan = allUsers.reduce((s, u) => s + (u.progress?.latihanHistory?.length || 0), 0)
     const totalTryout = allUsers.reduce((s, u) => s + (u.progress?.tryoutHistory?.length || 0), 0)
     return { total, activeToday, avgTryout, totalLatihan, totalTryout }
-  }, [allUsers])
+  }, [allUsers, userTimeToday])
 
   // Score distribution
   const scoreDistribution = useMemo(() => {
@@ -860,7 +863,7 @@ export default function Admin() {
                               )}
                             </td>
                             <td className="py-3 px-3 text-gray-400 text-xs whitespace-nowrap">
-                              {new Date(v.date).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
+                              {new Date(v.date || v.serverTimestamp).toLocaleString('id-ID', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                             </td>
                           </tr>
                         )
@@ -915,6 +918,7 @@ function formatTimeAgo(dateStr) {
 }
 
 function UserDetailPanel({ user, visits, onClose }) {
+  const [expandedTopic, setExpandedTopic] = useState(null)
   const totalTime = visits.reduce((s, v) => s + (v.duration || 0), 0)
   const todayStr = new Date().toDateString()
   const todayVisits = visits.filter(v => new Date(v.date || v.serverTimestamp).toDateString() === todayStr)
@@ -960,6 +964,25 @@ function UserDetailPanel({ user, visits, onClose }) {
   const avgEngScore = engLatihan.length
     ? Math.round(engLatihan.reduce((s, l) => s + (l.percent || 0), 0) / engLatihan.length)
     : null
+
+  // Chapter quiz scores
+  const chapterQuizScores = user.progress?.chapterQuizScores || {}
+  const quizEntries = Object.entries(chapterQuizScores)
+
+  // Aggregated topic breakdown dari semua latihan history
+  const topicAgg = {}
+  latihanList.forEach(l => {
+    if (!l.topicBreakdown) return
+    l.topicBreakdown.forEach(t => {
+      const key = `${l.subject}::${t.topic}`
+      if (!topicAgg[key]) topicAgg[key] = { subject: l.subject, topic: t.topic, totalScore: 0, totalQ: 0, attempts: 0, history: [] }
+      topicAgg[key].totalScore += t.score || 0
+      topicAgg[key].totalQ += t.total || 0
+      topicAgg[key].attempts++
+      topicAgg[key].history.push({ score: t.score, total: t.total, date: l.date })
+    })
+  })
+  const topicStats = Object.values(topicAgg).sort((a, b) => a.subject.localeCompare(b.subject) || a.topic.localeCompare(b.topic))
 
   return (
     <div className="fixed inset-0 z-50 flex">
@@ -1059,6 +1082,120 @@ function UserDetailPanel({ user, visits, onClose }) {
               </div>
             </div>
           </div>
+
+          {/* === Detail Nilai per Sub-Bab === */}
+          {(quizEntries.length > 0 || topicStats.length > 0) && (
+            <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
+              <h4 className="font-bold text-sm text-gray-700 mb-3 flex items-center gap-2">
+                <TrendingUp size={15} className="text-indigo-600" />
+                Nilai per Sub-Bab
+              </h4>
+
+              {/* Chapter Quiz Scores */}
+              {quizEntries.length > 0 && (
+                <>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Kuis Bab</p>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    {quizEntries.map(([quizId, data]) => {
+                      const pct = data.total > 0 ? Math.round((data.score / data.total) * 100) : 0
+                      const isExpQ = expandedTopic === `quiz::${quizId}`
+                      return (
+                        <div key={quizId} className={`rounded-xl border p-3 ${pct >= 70 ? 'bg-green-50 border-green-200' : pct >= 50 ? 'bg-amber-50 border-amber-200' : 'bg-red-50 border-red-200'}`}>
+                          <p className="text-xs font-semibold text-gray-700 capitalize truncate">{quizId.replace(/[-_]/g, ' ')}</p>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-[10px] text-gray-500">{data.score}/{data.total} benar</span>
+                            <span className={`text-sm font-bold ${pct >= 70 ? 'text-green-700' : pct >= 50 ? 'text-amber-700' : 'text-red-600'}`}>{pct}%</span>
+                          </div>
+                          <div className="flex items-center justify-between mt-1">
+                            <span className="text-[9px] text-gray-400">
+                              {data.attempts ? `${data.attempts}x dikerjakan` : data.date ? new Date(data.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' }) : ''}
+                            </span>
+                            {data.history && data.history.length > 1 && (
+                              <button
+                                onClick={() => setExpandedTopic(isExpQ ? null : `quiz::${quizId}`)}
+                                className="text-[9px] text-blue-600 font-semibold hover:underline"
+                              >
+                                {isExpQ ? 'Tutup' : 'Detail'}
+                              </button>
+                            )}
+                          </div>
+                          {isExpQ && data.history && (
+                            <div className="mt-2 space-y-1 border-t border-gray-200 pt-2">
+                              {[...data.history].reverse().map((h, j) => {
+                                const hPct = h.total > 0 ? Math.round((h.score / h.total) * 100) : 0
+                                return (
+                                  <div key={j} className="flex items-center justify-between text-[9px]">
+                                    <span className="text-gray-400">{h.date ? new Date(h.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : '—'}</span>
+                                    <span className={`font-semibold ${hPct >= 70 ? 'text-green-600' : hPct >= 50 ? 'text-amber-600' : 'text-red-500'}`}>
+                                      {h.score}/{h.total} ({hPct}%)
+                                    </span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                </>
+              )}
+
+              {/* Topic Performance dari Latihan */}
+              {topicStats.length > 0 && (
+                <>
+                  <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wide mb-2">Performa per Topik (dari Latihan)</p>
+                  <div className="space-y-1">
+                    {topicStats.map((t, i) => {
+                      const pct = t.totalQ > 0 ? Math.round((t.totalScore / t.totalQ) * 100) : 0
+                      const key = `${t.subject}::${t.topic}`
+                      const isExpanded = expandedTopic === key
+                      return (
+                        <div key={i}>
+                          <button
+                            onClick={() => setExpandedTopic(isExpanded ? null : key)}
+                            className="w-full flex items-center gap-2 py-1.5 hover:bg-gray-50 rounded-lg px-1 transition-colors"
+                          >
+                            <span className={`w-5 h-5 rounded-md flex items-center justify-center flex-shrink-0 text-[9px] font-bold ${t.subject === 'matematika' ? 'bg-blue-100 text-blue-700' : 'bg-emerald-100 text-emerald-700'}`}>
+                              {t.subject === 'matematika' ? 'M' : 'E'}
+                            </span>
+                            <span className="text-xs text-gray-600 w-24 truncate flex-shrink-0 text-left">{t.topic}</span>
+                            <div className="flex-1 h-2 bg-gray-100 rounded-full overflow-hidden">
+                              <div
+                                className={`h-full rounded-full ${pct >= 70 ? 'bg-green-500' : pct >= 50 ? 'bg-amber-500' : 'bg-red-400'}`}
+                                style={{ width: `${pct}%` }}
+                              />
+                            </div>
+                            <span className={`text-[10px] font-bold w-8 text-right flex-shrink-0 ${pct >= 70 ? 'text-green-700' : pct >= 50 ? 'text-amber-700' : 'text-red-600'}`}>{pct}%</span>
+                            <span className="text-[9px] text-gray-400 w-10 text-right flex-shrink-0">{t.attempts}x</span>
+                            <ChevronDown size={12} className={`text-gray-400 flex-shrink-0 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                          </button>
+                          {isExpanded && (
+                            <div className="ml-8 mb-2 mt-1 space-y-1 border-l-2 border-gray-200 pl-3">
+                              {t.history.map((h, j) => {
+                                const hPct = h.total > 0 ? Math.round((h.score / h.total) * 100) : 0
+                                return (
+                                  <div key={j} className="flex items-center gap-2 text-[10px]">
+                                    <span className="text-gray-400 w-16 flex-shrink-0">
+                                      {h.date ? new Date(h.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'}
+                                    </span>
+                                    <span className={`font-semibold ${hPct >= 70 ? 'text-green-600' : hPct >= 50 ? 'text-amber-600' : 'text-red-500'}`}>
+                                      {h.score}/{h.total} ({hPct}%)
+                                    </span>
+                                  </div>
+                                )
+                              })}
+                            </div>
+                          )}
+                        </div>
+                      )
+                    })}
+                  </div>
+                  <p className="text-[9px] text-gray-400 mt-2">Berdasarkan {latihanList.length} sesi latihan · Klik topik untuk detail</p>
+                </>
+              )}
+            </div>
+          )}
 
           {/* === Waktu Belajar === */}
           <div className="bg-white border border-gray-100 rounded-2xl p-4 shadow-sm">
@@ -1210,26 +1347,42 @@ function UserDetailPanel({ user, visits, onClose }) {
             ) : (
               <div className="space-y-2">
                 {[...latihanList].reverse().slice(0, 8).map((l, i) => (
-                  <div key={i} className="flex items-center gap-3 p-2.5 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
-                    <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${l.subject === 'matematika' ? 'bg-blue-100' : 'bg-emerald-100'}`}>
-                      <span className={`text-[10px] font-bold ${l.subject === 'matematika' ? 'text-blue-700' : 'text-emerald-700'}`}>
-                        {l.subject === 'matematika' ? 'M' : 'E'}
-                      </span>
+                  <div key={i} className="rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors">
+                    <div className="flex items-center gap-3 p-2.5">
+                      <div className={`w-7 h-7 rounded-lg flex items-center justify-center flex-shrink-0 ${l.subject === 'matematika' ? 'bg-blue-100' : 'bg-emerald-100'}`}>
+                        <span className={`text-[10px] font-bold ${l.subject === 'matematika' ? 'text-blue-700' : 'text-emerald-700'}`}>
+                          {l.subject === 'matematika' ? 'M' : 'E'}
+                        </span>
+                      </div>
+                      <div className="flex-1">
+                        <p className="text-xs font-medium text-gray-700 capitalize">{l.subject || '—'}</p>
+                        <p className="text-[10px] text-gray-400">
+                          {l.date ? new Date(l.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="font-bold text-sm" style={{ color: (l.percent || 0) >= 70 ? '#059669' : (l.percent || 0) >= 50 ? '#D97706' : '#DC2626' }}>
+                          {l.percent !== undefined ? `${l.percent}%` : '—'}
+                        </p>
+                        {l.score !== undefined && l.total !== undefined && (
+                          <p className="text-[10px] text-gray-400">{l.score}/{l.total} benar</p>
+                        )}
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <p className="text-xs font-medium text-gray-700 capitalize">{l.subject || '—'}</p>
-                      <p className="text-[10px] text-gray-400">
-                        {l.date ? new Date(l.date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: '2-digit' }) : '—'}
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <p className="font-bold text-sm" style={{ color: (l.percent || 0) >= 70 ? '#059669' : (l.percent || 0) >= 50 ? '#D97706' : '#DC2626' }}>
-                        {l.percent !== undefined ? `${l.percent}%` : '—'}
-                      </p>
-                      {l.score !== undefined && l.total !== undefined && (
-                        <p className="text-[10px] text-gray-400">{l.score}/{l.total} benar</p>
-                      )}
-                    </div>
+                    {l.topicBreakdown && l.topicBreakdown.length > 0 && (
+                      <div className="px-2.5 pb-2.5 pt-0">
+                        <div className="flex flex-wrap gap-1.5">
+                          {l.topicBreakdown.map((t, j) => {
+                            const tPct = t.total > 0 ? Math.round((t.score / t.total) * 100) : 0
+                            return (
+                              <span key={j} className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-md text-[9px] font-medium ${tPct >= 70 ? 'bg-green-100 text-green-700' : tPct >= 50 ? 'bg-amber-100 text-amber-700' : 'bg-red-100 text-red-700'}`}>
+                                {t.topic}: {t.score}/{t.total}
+                              </span>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>

@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useEffect } from 'react'
+import { createContext, useContext, useState, useEffect, useRef } from 'react'
 import { syncUserToFirestore, deleteUserFromFirestore, getForceLogoutTimestamp } from '../services/firestore'
 
 const AuthContext = createContext(null)
@@ -188,6 +188,27 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
+  // Lightweight lastActive update — called on every page navigation
+  // Throttled: hanya sync ke Firestore maksimal sekali per 60 detik agar ringan
+  const lastSyncRef = useRef(0)
+  const touchLastActive = () => {
+    if (!user || user.isAdmin) return
+    const users = loadUsers()
+    const userData = users[user.email]
+    if (!userData) return
+    const now = new Date().toISOString()
+    userData.progress.lastActive = now
+    users[user.email] = userData
+    saveUsers(users)
+    // Sync ke Firestore dengan throttle (maks sekali per 60 detik)
+    // Ini penting agar Admin panel di device lain bisa melihat user aktif hari ini
+    const nowMs = Date.now()
+    if (nowMs - lastSyncRef.current > 60000) {
+      lastSyncRef.current = nowMs
+      syncWithRetry(user.email, userData)
+    }
+  }
+
   const updateProfile = (updates) => {
     if (!user) return
     const users = loadUsers()
@@ -214,7 +235,17 @@ export function AuthProvider({ children }) {
     if (!user) return
     const users = loadUsers()
     const userData = users[user.email]
-    userData.progress.chapterQuizScores[quizId] = { score, total, date: new Date().toISOString() }
+    const now = new Date().toISOString()
+    const existing = userData.progress.chapterQuizScores[quizId]
+    const history = existing?.history || []
+    history.push({ score, total, date: now })
+    userData.progress.chapterQuizScores[quizId] = {
+      score, total, date: now,
+      attempts: (existing?.attempts || 0) + 1,
+      bestScore: Math.max(score, existing?.bestScore || 0),
+      history: history.slice(-10), 
+    }
+    userData.progress.lastActive = now
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
@@ -232,6 +263,7 @@ export function AuthProvider({ children }) {
       date: new Date().toISOString(),
     }
     userData.progress.latihanHistory = [entry, ...(userData.progress.latihanHistory || [])].slice(0, 20)
+    userData.progress.lastActive = new Date().toISOString()
 
     const pct = entry.percent
     if (subject === 'matematika') userData.progress.mathProgress = Math.max(userData.progress.mathProgress, pct)
@@ -255,6 +287,7 @@ export function AuthProvider({ children }) {
     }
     userData.progress.tryoutHistory = [entry, ...(userData.progress.tryoutHistory || [])].slice(0, 20)
     userData.progress.lastTryoutScore = scaledScore
+    userData.progress.lastActive = new Date().toISOString()
     users[user.email] = userData
     saveUsers(users)
     setUser({ ...userData, email: user.email })
@@ -273,6 +306,7 @@ export function AuthProvider({ children }) {
     const completed = userData.progress.completedChapters[key].length
     if (key === 'math') userData.progress.mathProgress = Math.max(userData.progress.mathProgress, Math.round((completed / totalChapters) * 100))
     else userData.progress.englishProgress = Math.max(userData.progress.englishProgress, Math.round((completed / totalChapters) * 100))
+    userData.progress.lastActive = new Date().toISOString()
 
     users[user.email] = userData
     saveUsers(users)
@@ -301,7 +335,7 @@ export function AuthProvider({ children }) {
     <AuthContext.Provider value={{
       user, loading,
       register, login, logout,
-      updateProfile, updateProgress, saveQuizScore,
+      updateProfile, updateProgress, touchLastActive, saveQuizScore,
       saveLatihanResult, saveTryoutResult, markChapterComplete,
       getAllUsers, deleteUser,
       isLoggedIn: !!user,

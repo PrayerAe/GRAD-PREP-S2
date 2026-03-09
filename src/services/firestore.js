@@ -27,6 +27,9 @@ export async function syncUserToFirestore(email, userData) {
   }
   try {
     const now = new Date().toISOString()
+    // Gunakan lastActive dari progress user (sudah diupdate oleh AuthContext)
+    // Jangan selalu overwrite ke 'now' — agar Admin panel melihat waktu aktif yang sebenarnya
+    const actualLastActive = userData.progress?.lastActive || now
     const latihanHistory = userData.progress?.latihanHistory || []
     const tryoutHistory = userData.progress?.tryoutHistory || []
     await setDoc(
@@ -39,10 +42,10 @@ export async function syncUserToFirestore(email, userData) {
         isAdmin: userData.isAdmin || false,
         createdAt: userData.createdAt || now,
         // Top-level lastActive untuk ordering query
-        lastActive: now,
+        lastActive: actualLastActive,
         // Nested progress object — Admin.jsx membaca u.progress.*
         progress: {
-          lastActive: now,
+          lastActive: actualLastActive,
           mathProgress: userData.progress?.mathProgress || 0,
           englishProgress: userData.progress?.englishProgress || 0,
           lastTryoutScore: userData.progress?.lastTryoutScore || 0,

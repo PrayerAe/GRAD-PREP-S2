@@ -5,18 +5,21 @@ import { recordPageVisit } from '../utils/analytics'
 
 /**
  * Invisible component placed inside BrowserRouter.
- * Automatically tracks time spent on each page.
+ * Automatically tracks time spent on each page and updates lastActive.
  */
 export default function PageTracker() {
   const location = useLocation()
-  const { user } = useAuth()
+  const { user, touchLastActive } = useAuth()
   const entryTimeRef = useRef(Date.now())
   const lastPathRef = useRef(location.pathname)
   const userRef = useRef(user?.email || null)
 
-  // Keep userRef fresh
+  // Keep userRef fresh & trigger touchLastActive when user becomes available
   useEffect(() => {
+    const wasNull = !userRef.current
     userRef.current = user?.email || null
+    // User just logged in or session restored → sync lastActive immediately
+    if (wasNull && user?.email) touchLastActive()
   }, [user])
 
   // Track on route change
@@ -29,6 +32,9 @@ export default function PageTracker() {
       duration,
       userId: userRef.current,
     })
+
+    // Update lastActive timestamp so Admin panel sees today's activity
+    if (userRef.current) touchLastActive()
 
     // Reset for new page
     entryTimeRef.current = now

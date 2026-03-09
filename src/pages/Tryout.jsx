@@ -342,10 +342,11 @@ export default function Tryout() {
           {/* Charts */}
           <div className="grid lg:grid-cols-2 gap-6">
             <div className="card border border-gray-100">
-              <h3 className="font-heading font-bold text-lg text-gray-900 mb-4 flex items-center gap-2">
+              <h3 className="font-heading font-bold text-lg text-gray-900 mb-2 flex items-center gap-2">
                 <BarChart2 size={18} className="text-blue-800" />
-                Analisis per Topik
+                Estimasi per Topik
               </h3>
+              <p className="text-xs text-gray-400 mb-4">Berdasarkan skor keseluruhan per mata pelajaran</p>
               <div className="h-64">
                 <ResponsiveContainer width="100%" height="100%">
                   <RadarChart data={radarData}>
