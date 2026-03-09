@@ -6,7 +6,7 @@ import ProgressBar from '../components/ProgressBar'
 import { getGrade } from '../components/ScoreCard'
 import {
   Menu, BookOpen, BookMarked, Target, TrendingUp, Clock,
-  Star, ArrowRight, Award, PenLine, Zap, Calendar
+  Star, ArrowRight, Award, PenLine, Zap, Calendar, Headphones, Globe
 } from 'lucide-react'
 import {
   RadialBarChart, RadialBar, ResponsiveContainer, Legend,
@@ -131,7 +131,7 @@ export default function Dashboard() {
           </div>
 
           {/* Progress Cards */}
-          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6" id="progress-cards">
             {/* Math progress */}
             <div className="card border border-gray-100">
               <div className="flex items-center gap-3 mb-4">
@@ -172,6 +172,46 @@ export default function Dashboard() {
               </button>
             </div>
 
+            {/* TOEFL card */}
+            <div className="card border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                  <Headphones size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">TOEFL</h3>
+                  <p className="text-xs text-gray-500">4 Section · Reading, Listening, Speaking, Writing</p>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 mb-3 bg-indigo-50 rounded-lg px-3 py-2">iBT Format · Target Score 80+</div>
+              <button
+                onClick={() => navigate('/materi/toefl')}
+                className="mt-2 w-full flex items-center justify-center gap-2 text-sm text-indigo-700 font-semibold hover:bg-indigo-50 py-2 rounded-xl transition-colors"
+              >
+                Mulai Belajar TOEFL <ArrowRight size={14} />
+              </button>
+            </div>
+
+            {/* IELTS card */}
+            <div className="card border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 bg-gradient-to-br from-cyan-500 to-teal-600 rounded-xl flex items-center justify-center shadow-lg shadow-cyan-500/20">
+                  <Globe size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">IELTS</h3>
+                  <p className="text-xs text-gray-500">4 Section · Listening, Reading, Writing, Speaking</p>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 mb-3 bg-cyan-50 rounded-lg px-3 py-2">Academic · Target Band 6.5+</div>
+              <button
+                onClick={() => navigate('/materi/ielts')}
+                className="mt-2 w-full flex items-center justify-center gap-2 text-sm text-cyan-700 font-semibold hover:bg-cyan-50 py-2 rounded-xl transition-colors"
+              >
+                Mulai Belajar IELTS <ArrowRight size={14} />
+              </button>
+            </div>
+
             {/* Tryout card */}
             <div className="card border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
               <div className="flex items-center gap-3 mb-4">
@@ -186,13 +226,16 @@ export default function Dashboard() {
               <div className="text-center py-3">
                 <span className="text-4xl font-heading font-bold text-amber-700">{lastTryoutScore}</span>
                 <span className="text-gray-500 text-sm"> / 800</span>
-                {lastTryoutScore > 0 && (
-                  <div className="mt-1">
-                    <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${getGrade(Math.round(lastTryoutScore / 8)).color} ${getGrade(Math.round(lastTryoutScore / 8)).bg}`}>
-                      Grade {getGrade(Math.round(lastTryoutScore / 8)).grade}
-                    </span>
-                  </div>
-                )}
+                {lastTryoutScore > 0 && (() => {
+                  const tg = getGrade(Math.round(lastTryoutScore / 8))
+                  return (
+                    <div className="mt-1">
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${tg.color} ${tg.bg}`}>
+                        Grade {tg.grade}
+                      </span>
+                    </div>
+                  )
+                })()}
               </div>
               <button
                 onClick={() => navigate('/tryout')}
@@ -256,6 +299,8 @@ export default function Dashboard() {
                 {[
                   { onClick: () => navigate('/materi/matematika'), icon: BookOpen, iconColor: 'text-blue-700', bg: 'bg-blue-50 hover:bg-blue-100', title: 'Lanjutkan Matematika', sub: '4 Bab tersedia' },
                   { onClick: () => navigate('/materi/english'), icon: BookMarked, iconColor: 'text-green-700', bg: 'bg-green-50 hover:bg-green-100', title: 'Lanjutkan Bahasa Inggris', sub: '4 Bab tersedia' },
+                  { onClick: () => navigate('/materi/toefl'), icon: Headphones, iconColor: 'text-indigo-700', bg: 'bg-indigo-50 hover:bg-indigo-100', title: 'Belajar TOEFL', sub: 'Reading · Listening · Speaking · Writing' },
+                  { onClick: () => navigate('/materi/ielts'), icon: Globe, iconColor: 'text-cyan-700', bg: 'bg-cyan-50 hover:bg-cyan-100', title: 'Belajar IELTS', sub: 'Listening · Reading · Writing · Speaking' },
                   { onClick: () => navigate('/latihan/matematika'), icon: PenLine, iconColor: 'text-purple-700', bg: 'bg-purple-50 hover:bg-purple-100', title: 'Latihan Soal', sub: 'Matematika & English' },
                   { onClick: () => navigate('/tryout'), icon: Target, iconColor: 'text-amber-700', bg: 'bg-amber-50 hover:bg-amber-100', title: 'Ikuti Tryout', sub: '80 soal · 90 menit' },
                 ].map(({ onClick, icon: Icon, iconColor, bg, title, sub }) => (

@@ -2,13 +2,16 @@ import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, BookOpen, BookMarked,
-  PenLine, Target, User, GraduationCap, X, LogOut, ChevronRight, Shield
+  PenLine, Target, User, GraduationCap, X, LogOut, ChevronRight, Shield,
+  Headphones, Globe
 } from 'lucide-react'
 
 const navItems = [
   { icon: LayoutDashboard, label: 'Dashboard', to: '/dashboard' },
   { icon: BookOpen, label: 'Matematika', to: '/materi/matematika' },
   { icon: BookMarked, label: 'Bahasa Inggris', to: '/materi/english' },
+  { icon: Headphones, label: 'TOEFL', to: '/materi/toefl' },
+  { icon: Globe, label: 'IELTS', to: '/materi/ielts' },
   { icon: PenLine, label: 'Latihan Soal', to: '/latihan/matematika' },
   { icon: Target, label: 'Tryout', to: '/tryout' },
 ]
@@ -61,6 +64,8 @@ export default function Sidebar({ mobileOpen, onClose }) {
         <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider px-4 mb-2">Menu</p>
         {navItems.map(({ icon: Icon, label, to }) => {
           const isActive = pathname === to || (to === '/latihan/matematika' && pathname.startsWith('/latihan'))
+            || (to === '/materi/toefl' && pathname === '/materi/toefl')
+            || (to === '/materi/ielts' && pathname === '/materi/ielts')
           return (
             <Link
               key={to}

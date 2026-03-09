@@ -8,6 +8,8 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import Matematika from './pages/Matematika'
 import English from './pages/English'
+import TOEFL from './pages/TOEFL'
+import IELTS from './pages/IELTS'
 import Latihan from './pages/Latihan'
 import Tryout from './pages/Tryout'
 import Profile from './pages/Profile'
@@ -24,6 +26,8 @@ function App() {
           <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/materi/matematika" element={<ProtectedRoute><Matematika /></ProtectedRoute>} />
           <Route path="/materi/english" element={<ProtectedRoute><English /></ProtectedRoute>} />
+          <Route path="/materi/toefl" element={<ProtectedRoute><TOEFL /></ProtectedRoute>} />
+          <Route path="/materi/ielts" element={<ProtectedRoute><IELTS /></ProtectedRoute>} />
           <Route path="/latihan/:subject" element={<ProtectedRoute><Latihan /></ProtectedRoute>} />
           <Route path="/tryout" element={<ProtectedRoute><Tryout /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
