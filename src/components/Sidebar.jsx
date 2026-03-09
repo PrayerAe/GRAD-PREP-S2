@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, BookOpen, BookMarked,
   PenLine, Target, User, GraduationCap, X, LogOut, ChevronRight, Shield,
-  Headphones, Globe
+  Headphones, Globe, Sparkles
 } from 'lucide-react'
 
 const navItems = [
@@ -12,6 +12,7 @@ const navItems = [
   { icon: BookMarked, label: 'Bahasa Inggris', to: '/materi/english' },
   { icon: Headphones, label: 'TOEFL', to: '/materi/toefl' },
   { icon: Globe, label: 'IELTS', to: '/materi/ielts' },
+  { icon: Sparkles, label: 'Vocabulary', to: '/vocabulary' },
   { icon: PenLine, label: 'Latihan Soal', to: '/latihan/matematika' },
   { icon: Target, label: 'Tryout', to: '/tryout' },
 ]

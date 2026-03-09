@@ -6,7 +6,7 @@ import ProgressBar from '../components/ProgressBar'
 import { getGrade } from '../components/ScoreCard'
 import {
   Menu, BookOpen, BookMarked, Target, TrendingUp, Clock,
-  Star, ArrowRight, Award, PenLine, Zap, Calendar, Headphones, Globe
+  Star, ArrowRight, Award, PenLine, Zap, Calendar, Headphones, Globe, Sparkles
 } from 'lucide-react'
 import {
   RadialBarChart, RadialBar, ResponsiveContainer, Legend,
@@ -212,6 +212,26 @@ export default function Dashboard() {
               </button>
             </div>
 
+            {/* Vocabulary card */}
+            <div className="card border border-gray-100">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-11 h-11 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center shadow-lg shadow-indigo-500/20">
+                  <Sparkles size={20} className="text-white" />
+                </div>
+                <div>
+                  <h3 className="font-semibold text-gray-900">Vocabulary Builder</h3>
+                  <p className="text-xs text-gray-500">50 kata · Flashcard & Quiz</p>
+                </div>
+              </div>
+              <div className="text-xs text-gray-500 mb-3 bg-indigo-50 rounded-lg px-3 py-2">Academic · TOEFL · IELTS · Business</div>
+              <button
+                onClick={() => navigate('/vocabulary')}
+                className="mt-2 w-full flex items-center justify-center gap-2 text-sm text-indigo-700 font-semibold hover:bg-indigo-50 py-2 rounded-xl transition-colors"
+              >
+                Belajar Kosakata <ArrowRight size={14} />
+              </button>
+            </div>
+
             {/* Tryout card */}
             <div className="card border-2 border-amber-200 bg-gradient-to-br from-amber-50 to-orange-50">
               <div className="flex items-center gap-3 mb-4">
@@ -301,6 +321,7 @@ export default function Dashboard() {
                   { onClick: () => navigate('/materi/english'), icon: BookMarked, iconColor: 'text-green-700', bg: 'bg-green-50 hover:bg-green-100', title: 'Lanjutkan Bahasa Inggris', sub: '4 Bab tersedia' },
                   { onClick: () => navigate('/materi/toefl'), icon: Headphones, iconColor: 'text-indigo-700', bg: 'bg-indigo-50 hover:bg-indigo-100', title: 'Belajar TOEFL', sub: 'Reading · Listening · Speaking · Writing' },
                   { onClick: () => navigate('/materi/ielts'), icon: Globe, iconColor: 'text-cyan-700', bg: 'bg-cyan-50 hover:bg-cyan-100', title: 'Belajar IELTS', sub: 'Listening · Reading · Writing · Speaking' },
+                  { onClick: () => navigate('/vocabulary'), icon: Sparkles, iconColor: 'text-indigo-700', bg: 'bg-indigo-50 hover:bg-indigo-100', title: 'Vocabulary Builder', sub: '50 kata · Flashcard & Quiz' },
                   { onClick: () => navigate('/latihan/matematika'), icon: PenLine, iconColor: 'text-purple-700', bg: 'bg-purple-50 hover:bg-purple-100', title: 'Latihan Soal', sub: 'Matematika & English' },
                   { onClick: () => navigate('/tryout'), icon: Target, iconColor: 'text-amber-700', bg: 'bg-amber-50 hover:bg-amber-100', title: 'Ikuti Tryout', sub: '80 soal · 90 menit' },
                 ].map(({ onClick, icon: Icon, iconColor, bg, title, sub }) => (
