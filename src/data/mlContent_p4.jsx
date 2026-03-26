@@ -1,6 +1,7 @@
 // Chapter 4: NLP & Chapter 5: Data Science Workflow
 import { TipBox, ConceptGrid } from './mathContent.jsx'
 import { CodeBlock, SectionTitle, FormulaBox, CompareTable, DiagramBox } from './mlContent_p1.jsx'
+import { WordEmbeddingDiagram, FeatureEngineeringDiagram } from './mlDiagrams.jsx'
 
 export const nlpSections = [
   {
@@ -161,6 +162,8 @@ print(classification_report(y_test, pipeline.predict(X_test)))`}</CodeBlock>
     body: (
       <div>
         <p className="text-sm text-gray-600 mb-4">Word embeddings merepresentasikan kata sebagai vektor dense dalam ruang semantik — kata-kata yang bermakna mirip akan memiliki vektor yang berdekatan.</p>
+
+        <WordEmbeddingDiagram />
 
         <FormulaBox label="Cosine Similarity antara Dua Vektor" formula="cos(θ) = (A · B) / (||A|| · ||B||)" note="1.0 = identik, 0.0 = ortogonal, -1.0 = berlawanan. Ukuran kemiripan semantik" />
 
@@ -604,6 +607,8 @@ profile.to_file("eda_report.html")`}</CodeBlock>
     title: '⚙️ Feature Engineering',
     body: (
       <div>
+        <FeatureEngineeringDiagram />
+
         <CompareTable
           headers={['Teknik','Tujuan','Contoh','sklearn / pandas']}
           rows={[

@@ -707,4 +707,187 @@ export const mlChapterQuiz = {
       explanation: "Feature importance RF dihitung sebagai rata-rata penurunan impuritas (Gini/entropy) akibat split menggunakan fitur tersebut, dirata-ratakan atas semua pohon. Fitur dengan importance tinggi membuat split yang paling informatif."
     },
   ],
+
+  nlp: [
+    {
+      id: 'nlp1',
+      question: "Apa perbedaan utama antara Stemming dan Lemmatization dalam text preprocessing?",
+      options: [
+        "Stemming lebih akurat karena menggunakan kamus bahasa",
+        "Lemmatization memotong akhiran kata secara kasar; Stemming menghasilkan bentuk dasar yang valid secara linguistik",
+        "Stemming memotong akhiran kata secara kasar; Lemmatization menghasilkan bentuk dasar (lemma) yang valid secara linguistik menggunakan kamus",
+        "Keduanya identik, hanya berbeda nama"
+      ],
+      correctAnswer: 2,
+      explanation: "Stemming (Porter, Snowball) memotong suffix secara heuristik — cepat tapi hasilnya bisa bukan kata valid ('running' → 'run', 'studies' → 'studi'). Lemmatization menggunakan kamus linguistik untuk mendapatkan bentuk dasar yang valid ('better' → 'good', 'running' → 'run')."
+    },
+    {
+      id: 'nlp2',
+      question: "Apa yang dimaksud dengan TF-IDF dan bagaimana cara menghitungnya?",
+      options: [
+        "Term Frequency × Inverse Document Frequency — mengukur seberapa penting suatu kata dalam dokumen relatif terhadap seluruh corpus",
+        "Text Feature × Information Depth — teknik augmentasi data teks",
+        "Token Frequency × Index Distance — ukuran jarak antar token",
+        "Training Fraction × Instance Distribution — rasio pembagian data training"
+      ],
+      correctAnswer: 0,
+      explanation: "TF-IDF = TF(t,d) × IDF(t). TF = jumlah kemunculan term t di dokumen d / total term di d. IDF = log(N / df(t)) dimana N=total dokumen, df(t)=jumlah dokumen yang mengandung t. Kata umum (the, is) punya IDF rendah; kata khas punya IDF tinggi."
+    },
+    {
+      id: 'nlp3',
+      question: "Apa keunggulan Word2Vec dibanding representasi Bag-of-Words (BoW)?",
+      options: [
+        "Word2Vec lebih cepat untuk dokumen panjang",
+        "Word2Vec menghasilkan dense vector yang menangkap hubungan semantik antar kata (king - man + woman ≈ queen)",
+        "BoW lebih baik untuk sentiment analysis",
+        "Word2Vec hanya bisa digunakan dengan bahasa Inggris"
+      ],
+      correctAnswer: 1,
+      explanation: "BoW menghasilkan sparse vector tanpa makna semantik — 'king' dan 'monarch' dianggap tidak berhubungan. Word2Vec (CBOW/Skip-gram) menghasilkan dense embedding 100-300 dimensi yang menangkap relasi semantik dan sintaksis. Operasi vektor seperti king - man + woman ≈ queen menjadi mungkin."
+    },
+    {
+      id: 'nlp4',
+      question: "Dalam konteks NLP, apa yang dimaksud dengan 'attention mechanism'?",
+      options: [
+        "Mekanisme untuk menghapus kata-kata yang tidak relevan dari kalimat",
+        "Cara model memberi bobot berbeda pada setiap posisi input saat menghasilkan output tertentu, sehingga bisa fokus pada bagian yang relevan",
+        "Teknik regularisasi khusus untuk LSTM",
+        "Metode untuk mempercepat training dengan skip-connection"
+      ],
+      correctAnswer: 1,
+      explanation: "Attention: score(q,k) = softmax(QK^T / √d_k) × V. Model belajar 'memperhatikan' token mana yang relevan untuk menghasilkan setiap token output. Mengatasi kelemahan RNN yang kesulitan menangkap dependensi jarak jauh (long-range dependency)."
+    },
+    {
+      id: 'nlp5',
+      question: "Apa perbedaan antara BERT dan GPT dalam arsitektur Transformer?",
+      options: [
+        "BERT lebih besar dari GPT sehingga lebih powerful",
+        "BERT menggunakan encoder bidirectional (melihat konteks kiri dan kanan); GPT menggunakan decoder unidirectional (autoregressive, kiri ke kanan)",
+        "GPT menggunakan encoder; BERT menggunakan decoder",
+        "Keduanya identik dalam arsitektur, hanya berbeda ukuran"
+      ],
+      correctAnswer: 1,
+      explanation: "BERT (Encoder-only): bidirectional — setiap token melihat semua token lain. Cocok untuk classification, NER, QA. GPT (Decoder-only): autoregressive — hanya melihat token sebelumnya. Cocok untuk text generation. BERT dipretraining dengan Masked LM; GPT dengan next token prediction."
+    },
+    {
+      id: 'nlp6',
+      question: "Apa yang dimaksud dengan Named Entity Recognition (NER)?",
+      options: [
+        "Teknik untuk memberi nama pada model neural network",
+        "Tugas mengidentifikasi dan mengklasifikasikan entitas bernama (orang, tempat, organisasi, tanggal) dalam teks",
+        "Proses renaming variabel dalam kode program",
+        "Metode untuk mendeteksi plagiarisme dalam dokumen"
+      ],
+      correctAnswer: 1,
+      explanation: "NER adalah sequence labeling task: tiap token diberi label (PER=person, LOC=location, ORG=organization, MISC, O=other). Contoh: 'Elon Musk [PER] mendirikan Tesla [ORG] di California [LOC]'. Modern NER menggunakan BERT+CRF layer atau spaCy."
+    },
+    {
+      id: 'nlp7',
+      question: "Dalam tokenisasi modern (GPT/BERT), apa yang dimaksud dengan Byte Pair Encoding (BPE)?",
+      options: [
+        "Encoding teks menjadi representasi biner",
+        "Algoritma kompresi yang secara iteratif menggabungkan pasangan byte/karakter paling sering menjadi subword token baru",
+        "Metode enkripsi untuk melindungi data teks",
+        "Teknik padding untuk menyamakan panjang sequence"
+      ],
+      correctAnswer: 1,
+      explanation: "BPE: mulai dari karakter individual, iteratif gabungkan bigram paling sering. 'low', 'lower' → shared subword 'low'. Hasil: vocabulary dengan subword yang bisa merepresentasikan kata apapun termasuk OOV (out-of-vocabulary). GPT-2 menggunakan BPE; BERT menggunakan WordPiece (variasi BPE)."
+    },
+    {
+      id: 'nlp8',
+      question: "Apa itu Seq2Seq model dan untuk task apa biasanya digunakan?",
+      options: [
+        "Model untuk sequence classification (sentimen, topik)",
+        "Arsitektur encoder-decoder yang memetakan sequence input ke sequence output, digunakan untuk machine translation, summarization, dan chatbot",
+        "Model untuk menghitung similarity antara dua sequence",
+        "Teknik augmentasi data untuk teks"
+      ],
+      correctAnswer: 1,
+      explanation: "Seq2Seq: encoder membaca input sequence → context vector → decoder menghasilkan output sequence token by token. Digunakan untuk: machine translation (EN→ID), text summarization, question answering, dan chatbot. Modern Seq2Seq menggunakan Transformer dengan attention mechanism."
+    },
+    {
+      id: 'nlp9',
+      question: "Apa yang dimaksud dengan 'perplexity' sebagai metrik evaluasi language model?",
+      options: [
+        "Jumlah parameter dalam model bahasa",
+        "Ukuran seberapa 'terkejut' model terhadap test data — perplexity rendah menandakan model yang lebih baik dalam memprediksi teks",
+        "Kecepatan inferensi model dalam token per detik",
+        "Jumlah vocabulary yang dikuasai model"
+      ],
+      correctAnswer: 1,
+      explanation: "Perplexity = exp(-1/N × Σ log P(wᵢ|w₁...wᵢ₋₁)). Secara intuitif: average branching factor — berapa banyak pilihan kata yang 'dipertimbangkan' model. GPT-2 perplexity ~35 di WikiText-103; GPT-3 lebih rendah (~20). Lower is better."
+    },
+    {
+      id: 'nlp10',
+      question: "Dalam sentiment analysis, apa perbedaan antara pendekatan lexicon-based dan ML-based?",
+      options: [
+        "Lexicon-based lebih akurat dari ML-based untuk semua kasus",
+        "Lexicon-based menggunakan kamus kata bersentimen (VADER, SentiWordNet); ML-based belajar pola dari data berlabel menggunakan model seperti BERT",
+        "ML-based tidak bisa mendeteksi sarkasme; lexicon-based bisa",
+        "Keduanya menghasilkan output yang identik"
+      ],
+      correctAnswer: 1,
+      explanation: "Lexicon-based: cepat, tidak perlu data training, tapi kaku dan tidak kontekstual (tidak menangkap sarkasme/negasi kompleks). ML-based (BERT fine-tuned): belajar konteks, menangani nuansa bahasa, tapi butuh labeled data dan komputasi lebih besar. Hybrid approach sering memberikan hasil terbaik."
+    },
+    {
+      id: 'nlp11',
+      question: "Apa itu Transfer Learning dalam konteks NLP dan mengapa sangat efektif?",
+      options: [
+        "Mentransfer model dari satu bahasa ke bahasa lain secara langsung",
+        "Pretraining model besar di corpus raksasa lalu fine-tuning untuk downstream task spesifik dengan sedikit labeled data",
+        "Menggunakan weight dari model computer vision untuk NLP",
+        "Teknik untuk mempercepat training dengan memindahkan komputasi ke GPU"
+      ],
+      correctAnswer: 1,
+      explanation: "Transfer Learning NLP: (1) Pretrain di corpus besar (Wikipedia, Common Crawl) untuk belajar representasi bahasa umum. (2) Fine-tune dengan sedikit labeled data task-spesifik. BERT pretrained 3.3B token → fine-tune 1000 sampel sudah sangat baik. Sangat efektif karena pretrained model sudah 'mengerti' bahasa."
+    },
+    {
+      id: 'nlp12',
+      question: "Apa perbedaan antara Part-of-Speech (POS) Tagging dan Dependency Parsing?",
+      options: [
+        "POS Tagging lebih kompleks dari Dependency Parsing",
+        "POS Tagging memberi label kategori gramatikal tiap token (noun, verb, adj); Dependency Parsing menganalisis relasi sintaksis antar token (subject, object)",
+        "Dependency Parsing memberi label kategori gramatikal; POS Tagging menganalisis relasi",
+        "Keduanya menghasilkan output yang sama"
+      ],
+      correctAnswer: 1,
+      explanation: "POS Tagging: 'The [DT] cat [NN] sat [VBD] on [IN] the [DT] mat [NN]'. Dependency Parsing: 'cat' adalah nsubj (nominal subject) dari 'sat'; 'mat' adalah pobj dari 'on'. POS = kategori leksikal; Dependency = relasi gramatikal antar kata dalam kalimat."
+    },
+    {
+      id: 'nlp13',
+      question: "Bagaimana cara kerja Masked Language Model (MLM) dalam pretraining BERT?",
+      options: [
+        "Model memprediksi token berikutnya secara autoregressive",
+        "15% token di-mask secara random, model belajar memprediksi token yang di-mask berdasarkan konteks kiri dan kanan",
+        "Semua token di-mask dan model merekonstruksi kalimat dari awal",
+        "Model belajar dari pasangan kalimat yang kontradiktif"
+      ],
+      correctAnswer: 1,
+      explanation: "BERT MLM: 15% token dipilih random → 80% diganti [MASK], 10% diganti token random, 10% dibiarkan. Model harus memprediksi token asli. Karena melihat konteks KIRI dan KANAN sekaligus (bidirectional), BERT belajar representasi kontekstual yang kaya. Berbeda dengan GPT yang hanya autoregressive."
+    },
+    {
+      id: 'nlp14',
+      question: "Apa itu Cosine Similarity dan mengapa digunakan untuk membandingkan word embedding?",
+      options: [
+        "Ukuran jarak Euclidean antara dua vektor",
+        "Ukuran sudut antara dua vektor (cos θ = A·B / |A||B|), nilai 1 berarti identik — mengukur kesamaan arah tanpa terpengaruh magnitude",
+        "Fungsi loss untuk training word embedding",
+        "Teknik normalisasi embedding ke unit sphere"
+      ],
+      correctAnswer: 1,
+      explanation: "Cosine similarity = A·B / (|A|×|B|), range [-1, 1]. Digunakan untuk word embedding karena: (1) Word embedding punya magnitude yang bervariasi, cosine hanya mengukur arah. (2) Kata dengan makna mirip punya arah vektor yang mirip. 'king' dan 'queen' punya cosine similarity tinggi; 'king' dan 'apple' rendah."
+    },
+    {
+      id: 'nlp15',
+      question: "Apa yang dimaksud dengan 'hallucination' dalam Large Language Models (LLM)?",
+      options: [
+        "Kemampuan model untuk menghasilkan teks kreatif dan imajinatif",
+        "Fenomena di mana model menghasilkan informasi yang faktual salah namun terdengar meyakinkan dan koheren",
+        "Error saat model tidak bisa menghasilkan respons",
+        "Visualisasi internal representation dalam model"
+      ],
+      correctAnswer: 1,
+      explanation: "Hallucination: LLM menghasilkan 'fakta' yang salah tapi disajikan dengan confident (misal: biografi orang fiktif, referensi paper yang tidak ada). Penyebab: model belajar menghasilkan teks yang 'terdengar benar' berdasarkan distribusi training data, bukan dari database faktual. Mitigasi: RAG (Retrieval-Augmented Generation), fact-checking."
+    },
+  ],
 }

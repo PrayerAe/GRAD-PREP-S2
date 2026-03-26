@@ -1,6 +1,7 @@
 // Chapter 3: Deep Learning & Neural Networks
 import { TipBox, ConceptGrid } from './mathContent.jsx'
 import { CodeBlock, SectionTitle, FormulaBox, CompareTable, DiagramBox } from './mlContent_p1.jsx'
+import { ActivationFunctionsDiagram, BackpropDiagram, CNNArchDiagram, LSTMCellDiagram, AttentionMechDiagram, TransformerArchDiagram, GANDiagram } from './mlDiagrams.jsx'
 
 export const deeplearningSections = [
   {
@@ -88,6 +89,7 @@ plt.show()`}</CodeBlock>
     body: (
       <div>
         <p className="text-sm text-gray-600 mb-4">Activation function memberikan non-linearitas pada neural network — tanpanya, jaringan hanya bisa belajar transformasi linear.</p>
+        <ActivationFunctionsDiagram />
 
         <CompareTable
           headers={['Fungsi','Formula','Range','Digunakan Untuk','Kelemahan']}
@@ -153,6 +155,7 @@ model = keras.Sequential([
     body: (
       <div>
         <p className="text-sm text-gray-600 mb-4">Backpropagation adalah algoritma untuk menghitung gradien loss terhadap semua parameter menggunakan chain rule kalkulus.</p>
+        <BackpropDiagram />
 
         <FormulaBox label="Chain Rule — Backprop" formula="∂L/∂W⁽ˡ⁾ = ∂L/∂A⁽ˡ⁾ · ∂A⁽ˡ⁾/∂Z⁽ˡ⁾ · ∂Z⁽ˡ⁾/∂W⁽ˡ⁾" note="Gradien mengalir mundur dari output layer ke input layer" />
         <FormulaBox label="Weight Update (SGD)" formula="W := W - α · ∂L/∂W" note="α = learning rate. Terlalu besar = diverge, terlalu kecil = lambat" />
@@ -208,6 +211,7 @@ def train_step(x_batch, y_batch):
     body: (
       <div>
         <p className="text-sm text-gray-600 mb-4">CNN dirancang untuk data grid (gambar, audio, video) — menggunakan konvolusi untuk mendeteksi pola lokal seperti tepi, tekstur, dan bentuk.</p>
+        <CNNArchDiagram />
 
         <DiagramBox>{`CNN Architecture untuk Image Classification:
 
@@ -413,6 +417,7 @@ model_ts.fit(X_train, y_train, epochs=50, batch_size=32, validation_split=0.2)`}
     body: (
       <div>
         <p className="text-sm text-gray-600 mb-4">LSTM mengatasi masalah vanishing gradient RNN dengan 3 gate yang mengontrol aliran informasi. Bi-LSTM memproses sekuens dari dua arah sekaligus.</p>
+        <LSTMCellDiagram />
 
         <FormulaBox label="LSTM — Forget Gate" formula="fₜ = σ(Wf · [hₜ₋₁, xₜ] + bf)" note="Seberapa banyak cell state lama yang 'dilupakan' (0=lupa semua, 1=ingat semua)" />
         <FormulaBox label="LSTM — Input Gate" formula="iₜ = σ(Wi · [hₜ₋₁, xₜ] + bi)  |  C̃ₜ = tanh(WC · [hₜ₋₁, xₜ] + bC)" note="iₜ = info baru mana yang masuk, C̃ₜ = candidate values" />
@@ -489,6 +494,7 @@ model_forecast.compile(optimizer="adam", loss="mse", metrics=["mae"])`}</CodeBlo
     body: (
       <div>
         <p className="text-sm text-gray-600 mb-4">Attention memungkinkan model "memperhatikan" bagian input yang paling relevan saat menghasilkan setiap output — mengatasi bottleneck context vector pada Seq2Seq.</p>
+        <AttentionMechDiagram />
 
         <FormulaBox label="Attention Score (Bahdanau)" formula="eₜₛ = v · tanh(Wₕ·hₜ₋₁ + Wₛ·sₛ)" note="eₜₛ = seberapa relevan encoder state sₛ untuk menghasilkan output ke-t" />
         <FormulaBox label="Attention Weights" formula="αₜₛ = softmax(eₜₛ) = exp(eₜₛ) / Σₛ' exp(eₜₛ')" note="αₜₛ ≥ 0 dan Σₛ αₜₛ = 1 — distribusi probabilitas atas encoder states" />
@@ -548,6 +554,7 @@ output = attention(query=x, key=x, value=x)  # self-attention`}</CodeBlock>
     title: '🤖 Transformers Architecture',
     body: (
       <div>
+        <TransformerArchDiagram />
         <DiagramBox>{`Transformer Architecture (Vaswani et al., 2017):
 
   ENCODER:                          DECODER:
@@ -745,6 +752,7 @@ model.export(format="tflite")  # untuk mobile`}</CodeBlock>
     title: '🎨 Generative AI: GAN, VAE & Diffusion Models',
     body: (
       <div>
+        <GANDiagram />
         <CompareTable
           headers={['Model','Cara Kerja','Output Quality','Training','Contoh Aplikasi']}
           rows={[

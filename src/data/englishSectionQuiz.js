@@ -674,6 +674,45 @@ export const englishSectionQuiz = {
         explanation: "'On the other hand' = di sisi lain, menunjukkan perspektif yang berbeda. Urbanisasi menyebabkan degradasi lingkungan, tapi DI SISI LAIN juga membawa peluang ekonomi.",
       },
     ],
+    // Section 5: Everyday & Campus Vocabulary — 6 soal
+    [
+      {
+        question: "'Let's ___ over coffee after class.' Choose the best phrasal verb:",
+        options: ["catch up", "make up", "break down", "set up"],
+        correctIndex: 0,
+        explanation: "'Catch up' = mengobrol/bertemu setelah lama tidak ketemu. 'Make up' = berdamai/mengarang. 'Break down' = rusak. 'Set up' = memasang."
+      },
+      {
+        question: "Which expression is appropriate when asking a question in a university class?",
+        options: ["Could you elaborate on that point?", "Huh? What do you mean?", "Hey, explain that again!", "I don't get it at all."],
+        correctIndex: 0,
+        explanation: "'Could you elaborate on that point?' sopan dan profesional. Gunakan 'could you' + formal verb dalam konteks akademik."
+      },
+      {
+        question: "'I need to ___ my assignment before the deadline.' Best phrasal verb:",
+        options: ["hand in", "hang out", "run into", "sleep in"],
+        correctIndex: 0,
+        explanation: "'Hand in' = mengumpulkan (tugas). 'Hang out' = nongkrong. 'Run into' = bertemu kebetulan. 'Sleep in' = bangun siang."
+      },
+      {
+        question: "Your professor says 'Feel free to visit during my ___.' What does this refer to?",
+        options: ["office hours", "lunch break", "vacation time", "lecture period"],
+        correctIndex: 0,
+        explanation: "'Office hours' = jam konsultasi dosen, waktu khusus di mana mahasiswa bisa datang untuk diskusi atau bertanya."
+      },
+      {
+        question: "'She was ___ by the quality of the keynote speech.' (sangat terkesan)",
+        options: ["blown away", "fed up", "swamped", "sorted out"],
+        correctIndex: 0,
+        explanation: "'Blown away' = sangat terkesan/terpukau. 'Fed up' = muak. 'Swamped' = sibuk sekali. 'Sorted out' = membereskan."
+      },
+      {
+        question: "In an email to your professor, which opening is MOST appropriate?",
+        options: ["Dear Professor Smith, I hope this email finds you well.", "Hey Prof, what's up?", "Hi there! Quick question.", "Yo Professor, need your help."],
+        correctIndex: 0,
+        explanation: "Email ke dosen harus formal: 'Dear Professor [Name]' + kalimat pembuka sopan. Hindari 'Hey', 'Hi there', atau 'Yo' yang terlalu kasual."
+      },
+    ],
   ],
   structure: [
     // Section 0: Subject-Verb Agreement - 6 soal

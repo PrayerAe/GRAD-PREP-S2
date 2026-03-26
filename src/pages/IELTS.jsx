@@ -727,6 +727,7 @@ export default function IELTS() {
   const [activeChapter, setActiveChapter] = useState(0)
   const [activeSub, setActiveSub] = useState(null)
   const [mobileSidebar, setMobileSidebar] = useState(false)
+  const [subOpen, setSubOpen] = useState(true)
   const navigate = useNavigate()
   const { saveQuizScore } = useAuth()
   const chapter = chapters[activeChapter]
@@ -747,11 +748,13 @@ export default function IELTS() {
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar mobileOpen={mobileSidebar} onClose={() => setMobileSidebar(false)} />
 
-      <main className="flex-1 lg:ml-64">
+      <main className="flex-1 xl:ml-64">
+        {/* Sticky wrapper: header + chapter nav */}
+        <div className="sticky top-0 z-30">
         {/* Header */}
-        <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-100">
+        <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100">
           <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3">
-            <button className="lg:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors" onClick={() => setMobileSidebar(true)}>
+            <button className="xl:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100 transition-colors" onClick={() => setMobileSidebar(true)}>
               <Menu size={20} />
             </button>
             <div className={`w-10 h-10 bg-gradient-to-br ${chapter.gradient} rounded-xl flex items-center justify-center shadow-lg`}>
@@ -821,68 +824,59 @@ export default function IELTS() {
             })}
           </div>
         </div>
+        </div>{/* end sticky wrapper */}
 
         {/* Content Area */}
         <div className="flex">
           {/* Sub-chapter sidebar - Desktop */}
-          <aside className="hidden lg:block w-60 bg-white border-r border-gray-100 min-h-[calc(100vh-130px)] sticky top-[130px] self-start">
-            <div className="p-4 space-y-1">
-              <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest px-3 mb-3">Sub-Bab</p>
-              <button
-                onClick={() => { setActiveSub(null); window.scrollTo(0, 0) }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
-                  activeSub === null ? `${chapter.lightBg} ${chapter.lightText} font-semibold` : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <div className={`w-5 h-5 rounded-full ${activeSub === null ? 'bg-white' : chapter.lightBg} flex items-center justify-center flex-shrink-0`}>
-                  <List size={10} className={activeSub === null ? chapter.lightText : 'text-gray-400'} />
-                </div>
-                <span className="truncate text-xs">Semua Materi</span>
+          <aside className={`hidden lg:flex flex-col bg-white border-r border-gray-100 min-h-[calc(100vh-130px)] sticky top-[130px] self-start transition-all duration-300 overflow-hidden ${subOpen ? 'w-60' : 'w-10'}`}>
+            <div className={`flex ${subOpen ? 'justify-between items-center px-3' : 'justify-center'} pt-3 pb-2 border-b border-gray-100 flex-shrink-0`}>
+              {subOpen && <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">Sub-Bab</p>}
+              <button onClick={() => setSubOpen(o => !o)} title={subOpen ? 'Sembunyikan sidebar' : 'Tampilkan sidebar'} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition-colors flex-shrink-0">
+                {subOpen ? <ChevronLeft size={15} /> : <ChevronRight size={15} />}
               </button>
-              {chapter.subs.map((sub, si) => (
-                <button
-                  key={sub}
-                  onClick={() => { setActiveSub(si); window.scrollTo(0, 0) }}
-                  className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
-                    activeSub === si ? `${chapter.lightBg} ${chapter.lightText} font-semibold` : 'text-gray-600 hover:bg-gray-50'
-                  }`}
-                >
-                  <div className={`w-5 h-5 rounded-full ${activeSub === si ? 'bg-white' : chapter.lightBg} flex items-center justify-center flex-shrink-0`}>
-                    <span className={`text-[10px] font-bold ${chapter.lightText}`}>{si + 1}</span>
+            </div>
+            {subOpen && (
+              <>
+                <div className="p-3 space-y-1 overflow-y-auto flex-1">
+                  <button onClick={() => { setActiveSub(null); window.scrollTo(0, 0) }} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${activeSub === null ? `${chapter.lightBg} ${chapter.lightText} font-semibold` : 'text-gray-600 hover:bg-gray-50'}`}>
+                    <div className={`w-5 h-5 rounded-full ${activeSub === null ? 'bg-white' : chapter.lightBg} flex items-center justify-center flex-shrink-0`}>
+                      <List size={10} className={activeSub === null ? chapter.lightText : 'text-gray-400'} />
+                    </div>
+                    <span className="truncate text-xs">Semua Materi</span>
+                  </button>
+                  {chapter.subs.map((sub, si) => (
+                    <button key={sub} onClick={() => { setActiveSub(si); window.scrollTo(0, 0) }} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${activeSub === si ? `${chapter.lightBg} ${chapter.lightText} font-semibold` : 'text-gray-600 hover:bg-gray-50'}`}>
+                      <div className={`w-5 h-5 rounded-full ${activeSub === si ? 'bg-white' : chapter.lightBg} flex items-center justify-center flex-shrink-0`}>
+                        <span className={`text-[10px] font-bold ${chapter.lightText}`}>{si + 1}</span>
+                      </div>
+                      <span className="truncate text-xs">{sub}</span>
+                    </button>
+                  ))}
+                  <button onClick={() => { setActiveSub('quiz'); window.scrollTo(0, 0) }} className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${activeSub === 'quiz' ? 'bg-amber-50 text-amber-700 font-semibold' : 'text-gray-600 hover:bg-gray-50'}`}>
+                    <div className={`w-5 h-5 rounded-full ${activeSub === 'quiz' ? 'bg-white' : 'bg-amber-50'} flex items-center justify-center flex-shrink-0`}>
+                      <Award size={10} className="text-amber-600" />
+                    </div>
+                    <span className="truncate text-xs">Kuis Section</span>
+                  </button>
+                </div>
+                <div className="mx-3 my-3 p-3 rounded-xl bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-100 flex-shrink-0">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Sparkles size={13} className="text-cyan-600" />
+                    <span className="text-xs font-bold text-cyan-900">Progress Section</span>
                   </div>
-                  <span className="truncate text-xs">{sub}</span>
-                </button>
-              ))}
-              <button
-                onClick={() => { setActiveSub('quiz'); window.scrollTo(0, 0) }}
-                className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
-                  activeSub === 'quiz' ? 'bg-amber-50 text-amber-700 font-semibold' : 'text-gray-600 hover:bg-gray-50'
-                }`}
-              >
-                <div className={`w-5 h-5 rounded-full ${activeSub === 'quiz' ? 'bg-white' : 'bg-amber-50'} flex items-center justify-center flex-shrink-0`}>
-                  <Award size={10} className="text-amber-600" />
+                  <div className="w-full h-1.5 bg-cyan-200/50 rounded-full overflow-hidden">
+                    <div className="h-full bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full transition-all duration-500" style={{ width: `${((activeChapter + 1) / chapters.length) * 100}%` }} />
+                  </div>
+                  <p className="text-[10px] text-cyan-600 mt-1.5 font-medium">Section {activeChapter + 1} dari {chapters.length}</p>
                 </div>
-                <span className="truncate text-xs">Kuis Section</span>
-              </button>
-            </div>
-            <div className="mx-4 mt-4 p-4 rounded-xl bg-gradient-to-br from-cyan-50 to-teal-50 border border-cyan-100">
-              <div className="flex items-center gap-2 mb-2">
-                <Sparkles size={14} className="text-cyan-600" />
-                <span className="text-xs font-bold text-cyan-900">Progress Section</span>
-              </div>
-              <div className="w-full h-2 bg-cyan-200/50 rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-gradient-to-r from-cyan-500 to-teal-500 rounded-full transition-all duration-500"
-                  style={{ width: `${((activeChapter + 1) / chapters.length) * 100}%` }}
-                />
-              </div>
-              <p className="text-[10px] text-cyan-600 mt-1.5 font-medium">Section {activeChapter + 1} dari {chapters.length}</p>
-            </div>
+              </>
+            )}
           </aside>
 
           {/* Main Content */}
           <div className="flex-1 px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-            <div className="max-w-3xl mx-auto">
+            <div>
               {/* Chapter Hero Card */}
               <div className={`bg-gradient-to-r ${chapter.gradient} rounded-2xl p-5 sm:p-6 mb-8 text-white relative overflow-hidden`}>
                 <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2" />

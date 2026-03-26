@@ -12,9 +12,11 @@ import TOEFL from './pages/TOEFL'
 import IELTS from './pages/IELTS'
 import Vocabulary from './pages/Vocabulary'
 import ML from './pages/ML'
+import CodingLab from './pages/CodingLab'
 import Latihan from './pages/Latihan'
 import Tryout from './pages/Tryout'
 import Profile from './pages/Profile'
+import DailyConversation from './pages/DailyConversation'
 import Admin from './pages/Admin'
 
 function App() {
@@ -32,9 +34,11 @@ function App() {
           <Route path="/materi/ielts" element={<ProtectedRoute><IELTS /></ProtectedRoute>} />
           <Route path="/vocabulary" element={<ProtectedRoute><Vocabulary /></ProtectedRoute>} />
           <Route path="/materi/ml" element={<ProtectedRoute><ML /></ProtectedRoute>} />
+          <Route path="/coding-lab" element={<ProtectedRoute><CodingLab /></ProtectedRoute>} />
           <Route path="/latihan/:subject" element={<ProtectedRoute><Latihan /></ProtectedRoute>} />
           <Route path="/tryout" element={<ProtectedRoute><Tryout /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          <Route path="/daily-conversation" element={<ProtectedRoute><DailyConversation /></ProtectedRoute>} />
           <Route path="/admin" element={<AdminRoute><Admin /></AdminRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>

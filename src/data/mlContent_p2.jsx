@@ -1,6 +1,7 @@
 // Chapter 2: ML Algorithms
 import { TipBox, ConceptGrid } from './mathContent.jsx'
 import { CodeBlock, SectionTitle, FormulaBox, CompareTable, DiagramBox } from './mlContent_p1.jsx'
+import { LinearRegressionDiagram, DecisionTreeVisualDiagram, EnsembleDiagram, SVMDiagram, KMeansClusteringDiagram, ConfusionMatrixDiagram, RegularizationDiagram } from './mlDiagrams.jsx'
 
 export const mlSections = [
   {
@@ -44,6 +45,7 @@ export const mlSections = [
       <div>
         <SectionTitle icon="📏">Linear Regression</SectionTitle>
         <p className="text-sm text-gray-600 mb-3">Memodelkan hubungan linear antara fitur input dan output kontinu.</p>
+        <LinearRegressionDiagram />
         <FormulaBox label="Model" formula="ŷ = β₀ + β₁x₁ + β₂x₂ + ... + βₙxₙ = Xβ" note="β₀ = intercept/bias, β₁...βₙ = koefisien, ŷ = prediksi" />
         <FormulaBox label="Cost Function — MSE" formula="J(β) = (1/2m) Σᵢ (ŷᵢ - yᵢ)²" note="m = jumlah data, minimasi J(β) untuk menemukan β optimal" />
         <FormulaBox label="Gradient Descent Update" formula="βⱼ := βⱼ - α · (∂J/∂βⱼ)  =  βⱼ - (α/m) Σ(ŷᵢ - yᵢ)xᵢⱼ" note="α = learning rate (biasanya 0.01–0.1)" />
@@ -114,6 +116,7 @@ print(f"AUC-ROC: {roc_auc_score(y_test, y_prob):.4f}")`}</CodeBlock>
       <div>
         <SectionTitle icon="🌳">Decision Tree</SectionTitle>
         <p className="text-sm text-gray-600 mb-3">Tree membuat keputusan berdasarkan serangkaian pertanyaan if-else pada fitur. Setiap split dipilih untuk memaksimalkan Information Gain.</p>
+        <DecisionTreeVisualDiagram />
 
         <FormulaBox label="Gini Impurity (default sklearn)" formula="Gini(t) = 1 - Σᵢ p(i|t)²" note="p(i|t) = proporsi kelas i di node t. Gini=0 berarti node murni (pure)" />
         <FormulaBox label="Entropy (Information Theory)" formula="H(t) = -Σᵢ p(i|t) · log₂ p(i|t)" note="H=0 berarti pure. H=1 untuk binary class seimbang 50/50" />
@@ -210,6 +213,7 @@ plt.title("🌲 Random Forest Feature Importance")`}</CodeBlock>
             ['Voting','Gabungkan prediksi dengan voting/averaging','Sederhana, robust','VotingClassifier'],
           ]}
         />
+        <EnsembleDiagram />
 
         <DiagramBox>{`BOOSTING — Sequential Learning:
 
@@ -344,6 +348,7 @@ for name, model in [("XGBoost", xgb_model), ("LightGBM", lgb_model), ("CatBoost"
       <div>
         <SectionTitle icon="⚔️">Support Vector Machine (SVM)</SectionTitle>
         <p className="text-sm text-gray-600 mb-3">SVM mencari hyperplane dengan margin terbesar yang memisahkan kelas. Data yang paling dekat dengan hyperplane disebut <strong>support vectors</strong>.</p>
+        <SVMDiagram />
 
         <FormulaBox label="Decision Boundary (Linear SVM)" formula="w · x + b = 0" note="Margin = 2/||w||. SVM memaksimalkan margin ini (minimasi ||w||)" />
         <FormulaBox label="Kernel Trick — RBF" formula="K(x, x') = exp(-γ ||x - x'||²)" note="Memetakan data ke ruang dimensi tinggi tanpa komputasi eksplisit" />
@@ -470,6 +475,7 @@ print(f"Probabilitas kelas: {proba[0]}")`}</CodeBlock>
       <div>
         <SectionTitle icon="🎯">K-Means Clustering</SectionTitle>
         <FormulaBox label="K-Means Objective (Inertia)" formula="J = Σₖ Σ_{xᵢ∈Cₖ} ||xᵢ - μₖ||²" note="Minimasi total jarak tiap titik ke centroid cluster-nya" />
+        <KMeansClusteringDiagram />
 
         <DiagramBox>{`K-Means Algorithm:
 
@@ -545,6 +551,7 @@ labels_agg = agg.fit_predict(X_scaled)`}</CodeBlock>
     body: (
       <div>
         <SectionTitle icon="🎯">Classification Metrics</SectionTitle>
+        <ConfusionMatrixDiagram />
         <div className="bg-gray-50 border border-gray-200 rounded-xl p-4 my-3">
           <p className="text-xs font-bold text-gray-500 uppercase mb-3">Confusion Matrix</p>
           <div className="overflow-x-auto">
@@ -618,6 +625,7 @@ print(f"R²:   {r2_score(y_test, y_pred):.4f}")`}</CodeBlock>
     body: (
       <div>
         <SectionTitle icon="⚖️">Bias-Variance Tradeoff</SectionTitle>
+        <RegularizationDiagram />
         <DiagramBox>{`  Error
   │
   │  Training Error ────────────────────────

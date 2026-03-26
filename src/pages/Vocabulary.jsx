@@ -431,11 +431,11 @@ export default function Vocabulary() {
     <div className="flex min-h-screen bg-gray-50">
       <Sidebar mobileOpen={mobileSidebar} onClose={() => setMobileSidebar(false)} />
 
-      <div className="flex-1 lg:ml-64 flex flex-col min-h-screen">
+      <div className="flex-1 xl:ml-64 flex flex-col min-h-screen">
         {/* Header */}
         <header className="bg-white border-b border-gray-200 sticky top-0 z-30">
           <div className="flex items-center gap-3 px-4 py-3">
-            <button onClick={() => setMobileSidebar(true)} className="lg:hidden p-2 rounded-xl hover:bg-gray-100">
+            <button onClick={() => setMobileSidebar(true)} className="xl:hidden p-2 rounded-xl hover:bg-gray-100">
               <Menu size={20} />
             </button>
             <div className="flex items-center gap-2 flex-1">

@@ -314,7 +314,7 @@ export default function Admin() {
             <p className="text-[10px] text-gray-400">GradPrep</p>
           </div>
         </div>
-        <button onClick={() => setMobileSidebar(false)} className="lg:hidden text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
+        <button onClick={() => setMobileSidebar(false)} className="xl:hidden text-gray-400 hover:text-gray-600 p-1 rounded-lg hover:bg-gray-100">
           <X size={18} />
         </button>
       </div>
@@ -373,13 +373,13 @@ export default function Admin() {
   return (
     <div className="flex min-h-screen bg-slate-50">
       {/* Desktop Sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen fixed left-0 top-0 z-40">
+      <aside className="hidden xl:flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen fixed left-0 top-0 z-40">
         <NavContent />
       </aside>
 
       {/* Mobile Sidebar */}
       {mobileSidebar && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div className="xl:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={() => setMobileSidebar(false)} />
           <aside className="relative flex flex-col w-72 bg-white h-full z-10 shadow-2xl">
             <NavContent />
@@ -388,11 +388,11 @@ export default function Admin() {
       )}
 
       {/* Main */}
-      <main className="flex-1 lg:ml-64">
+      <main className="flex-1 xl:ml-64">
         {/* Header */}
         <header className="sticky top-0 z-30 bg-white/80 backdrop-blur-xl border-b border-gray-100">
           <div className="px-4 sm:px-6 lg:px-8 py-4 flex items-center gap-3">
-            <button className="lg:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100" onClick={() => setMobileSidebar(true)}>
+            <button className="xl:hidden p-2 rounded-xl text-gray-600 hover:bg-gray-100" onClick={() => setMobileSidebar(true)}>
               <Menu size={20} />
             </button>
             <div className="flex-1">

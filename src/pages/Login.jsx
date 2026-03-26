@@ -14,27 +14,30 @@ export default function Login() {
   const navigate = useNavigate()
   const { login, register } = useAuth()
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
     setError('')
     setLoading(true)
 
-    setTimeout(() => {
+    try {
       if (tab === 'login') {
-        const res = login(email, password)
+        const res = await login(email, password)
         if (!res.ok) { setError(res.error); setLoading(false); return }
         setLoading(false)
         navigate(res.isAdmin ? '/admin' : '/dashboard')
         return
       } else {
         if (!name.trim()) { setError('Nama wajib diisi'); setLoading(false); return }
-        if (password.length < 4) { setError('Password minimal 4 karakter'); setLoading(false); return }
-        const res = register(name.trim(), email, password)
+        if (password.length < 6) { setError('Password minimal 6 karakter'); setLoading(false); return }
+        const res = await register(name.trim(), email, password)
         if (!res.ok) { setError(res.error); setLoading(false); return }
       }
       setLoading(false)
       navigate('/dashboard')
-    }, 500)
+    } catch (err) {
+      setError('Terjadi kesalahan. Coba lagi.')
+      setLoading(false)
+    }
   }
 
   return (

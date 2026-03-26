@@ -73,6 +73,23 @@ export async function syncUserToFirestore(email, userData) {
 }
 
 /**
+ * Ambil data user dari Firestore berdasarkan email.
+ * Digunakan untuk cross-device login — jika user tidak ada di localStorage,
+ * coba ambil dari Firestore.
+ */
+export async function getUserFromFirestore(email) {
+  if (!isFirebaseConfigured || !db) return null
+  try {
+    const snap = await getDoc(doc(db, 'users', encodeEmail(email)))
+    if (!snap.exists()) return null
+    return snap.data()
+  } catch (e) {
+    console.warn('[GradPrep] Firestore getUserByEmail failed:', e.message)
+    return null
+  }
+}
+
+/**
  * Hapus user dari Firestore (admin only).
  */
 export async function deleteUserFromFirestore(email) {

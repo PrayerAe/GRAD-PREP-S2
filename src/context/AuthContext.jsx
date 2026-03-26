@@ -1,5 +1,15 @@
 import { createContext, useContext, useState, useEffect, useRef } from 'react'
-import { syncUserToFirestore, deleteUserFromFirestore, getForceLogoutTimestamp } from '../services/firestore'
+import {
+  syncUserToFirestore,
+  deleteUserFromFirestore,
+  getUserFromFirestore,
+  getForceLogoutTimestamp,
+} from '../services/firestore'
+import {
+  registerInFirestore,
+  verifyLoginInFirestore,
+  ensureCredentialsInFirestore,
+} from '../services/authService'
 
 const AuthContext = createContext(null)
 
@@ -8,7 +18,7 @@ const STORAGE_KEYS = {
   session: 'gradprep_session',
 }
 
-// ---- Admin credentials (hardcoded, no backend needed) ----
+// ---- Admin credentials (hardcoded) ----
 const ADMIN_EMAIL = 'admin@gradprep.id'
 const ADMIN_PASSWORD = 'Admin@2026'
 
@@ -40,10 +50,8 @@ async function syncWithRetry(email, userData, retries = 3) {
   for (let i = 0; i < retries; i++) {
     const ok = await syncUserToFirestore(email, userData)
     if (ok) return true
-    // Tunggu sebelum retry (2s, 4s, 6s)
     if (i < retries - 1) await new Promise(r => setTimeout(r, 2000 * (i + 1)))
   }
-  // Semua retry gagal → simpan ke pending queue
   try {
     const pending = JSON.parse(localStorage.getItem(PENDING_SYNC_KEY) || '[]')
     if (!pending.includes(email)) {
@@ -69,7 +77,6 @@ function processPendingSync() {
         })
       }
     })
-    // Langsung kosongkan — sisa gagal akan diisi ulang oleh callback di atas
     localStorage.setItem(PENDING_SYNC_KEY, JSON.stringify([]))
   } catch {}
 }
@@ -113,42 +120,46 @@ export function AuthProvider({ children }) {
     const users = seedAdminAccount(loadUsers())
     const session = loadSession()
 
-    const restoreSession = (email, userData) => {
-      setUser({ ...userData, email })
-      if (!userData.isAdmin) {
-        userData.progress.lastActive = new Date().toISOString()
-        users[email] = userData
-        saveUsers(users)
-        syncWithRetry(email, userData)
-      }
-    }
-
-    // Process pending sync queue dari session sebelumnya yang gagal
     processPendingSync()
 
-    // Restore session langsung dari localStorage (tidak tunggu Firestore → app cepat)
-    const userData = users[session?.email]
-    if (session && userData) restoreSession(session.email, userData)
+    // Restore session dari localStorage (cepat, tanpa tunggu network)
+    if (session?.email) {
+      const userData = users[session.email]
+      if (userData) {
+        setUser({ ...userData, email: session.email })
+        if (!userData.isAdmin) {
+          userData.progress.lastActive = new Date().toISOString()
+          users[session.email] = userData
+          saveUsers(users)
+          syncWithRetry(session.email, userData)
+        }
+      }
+    }
     setLoading(false)
 
-    if (!session) return
-
-    // Cek force logout di background (non-blocking)
-    getForceLogoutTimestamp()
-      .then((forceLogoutAt) => {
-        if (forceLogoutAt && (!session.loggedInAt || session.loggedInAt < forceLogoutAt)) {
-          saveSession(null)
-          setUser(null)
-        }
-      })
-      .catch(() => {})
+    // Cek force logout di background
+    if (session) {
+      getForceLogoutTimestamp()
+        .then((forceLogoutAt) => {
+          if (forceLogoutAt && (!session.loggedInAt || session.loggedInAt < forceLogoutAt)) {
+            saveSession(null)
+            setUser(null)
+          }
+        })
+        .catch(() => {})
+    }
   }, [])
 
-  const register = (name, email, password) => {
+  const register = async (name, email, password) => {
     if (email === ADMIN_EMAIL) return { ok: false, error: 'Email ini tidak dapat didaftarkan.' }
     const users = loadUsers()
     if (users[email]) return { ok: false, error: 'Email sudah terdaftar' }
 
+    // 1. Daftarkan credentials ke Firestore (cross-device)
+    const authResult = await registerInFirestore(email, password)
+    if (!authResult.ok) return authResult
+
+    // 2. Simpan data user ke localStorage + Firestore
     const newUser = {
       name,
       password,
@@ -162,25 +173,81 @@ export function AuthProvider({ children }) {
     saveUsers(users)
     saveSession({ email })
     setUser({ ...newUser, email })
-    // Sync to Firestore with retry (cross-device)
     syncWithRetry(email, newUser)
     return { ok: true }
   }
 
-  const login = (email, password) => {
-    const users = loadUsers()
-    const userData = users[email]
-    if (!userData) return { ok: false, error: 'Email tidak ditemukan' }
-    if (userData.password !== password) return { ok: false, error: 'Password salah' }
+  const login = async (email, password) => {
+    // Admin login — tetap lokal (hardcoded)
+    if (email === ADMIN_EMAIL) {
+      const users = loadUsers()
+      const adminData = users[ADMIN_EMAIL]
+      if (!adminData || password !== ADMIN_PASSWORD) {
+        return { ok: false, error: 'Password admin salah' }
+      }
+      saveSession({ email })
+      setUser({ ...adminData, email })
+      return { ok: true, isAdmin: true }
+    }
+
+    // Cek localStorage dulu (device ini pernah login sebelumnya)
+    let users = loadUsers()
+    let userData = users[email]
+
+    if (userData && userData.password === password) {
+      // Login lokal berhasil — sync credentials ke Firestore di background
+      userData.progress.lastActive = new Date().toISOString()
+      users[email] = userData
+      saveUsers(users)
+      saveSession({ email })
+      setUser({ ...userData, email })
+      syncWithRetry(email, userData)
+      ensureCredentialsInFirestore(email, password)
+      return { ok: true, isAdmin: false }
+    }
+
+    // Tidak ada di localStorage ATAU password beda → verifikasi di Firestore (cross-device)
+    const authResult = await verifyLoginInFirestore(email, password)
+    if (!authResult.ok) return authResult
+
+    // Login Firestore berhasil — ambil data user dari Firestore
+    if (!userData) {
+      const firestoreData = await getUserFromFirestore(email)
+      if (firestoreData) {
+        userData = {
+          name: firestoreData.name || '',
+          password,
+          target: firestoreData.target || 'Lolos S2 2026',
+          avatar: firestoreData.avatar || firestoreData.name?.charAt(0)?.toUpperCase() || 'U',
+          isAdmin: false,
+          createdAt: firestoreData.createdAt || new Date().toISOString(),
+          progress: firestoreData.progress || createDefaultProgress(),
+        }
+      } else {
+        // Credentials ada tapi data user belum — buat baru
+        userData = {
+          name: email.split('@')[0],
+          password,
+          target: 'Lolos S2 2026',
+          avatar: email.charAt(0).toUpperCase(),
+          isAdmin: false,
+          createdAt: new Date().toISOString(),
+          progress: createDefaultProgress(),
+        }
+        syncWithRetry(email, userData)
+      }
+    } else {
+      // User ada di localStorage tapi password lama — update password lokal
+      userData.password = password
+    }
 
     userData.progress.lastActive = new Date().toISOString()
     users[email] = userData
     saveUsers(users)
     saveSession({ email })
     setUser({ ...userData, email })
-    // Sync to Firestore with retry (cross-device)
     syncWithRetry(email, userData)
-    return { ok: true, isAdmin: !!userData.isAdmin }
+    return { ok: true, isAdmin: false }
   }
 
   const logout = () => {
@@ -188,8 +255,7 @@ export function AuthProvider({ children }) {
     setUser(null)
   }
 
-  // Lightweight lastActive update — called on every page navigation
-  // Throttled: hanya sync ke Firestore maksimal sekali per 60 detik agar ringan
+  // Throttled lastActive update
   const lastSyncRef = useRef(0)
   const touchLastActive = () => {
     if (!user || user.isAdmin) return
@@ -200,8 +266,6 @@ export function AuthProvider({ children }) {
     userData.progress.lastActive = now
     users[user.email] = userData
     saveUsers(users)
-    // Sync ke Firestore dengan throttle (maks sekali per 60 detik)
-    // Ini penting agar Admin panel di device lain bisa melihat user aktif hari ini
     const nowMs = Date.now()
     if (nowMs - lastSyncRef.current > 60000) {
       lastSyncRef.current = nowMs
@@ -243,7 +307,7 @@ export function AuthProvider({ children }) {
       score, total, date: now,
       attempts: (existing?.attempts || 0) + 1,
       bestScore: Math.max(score, existing?.bestScore || 0),
-      history: history.slice(-10), 
+      history: history.slice(-10),
     }
     userData.progress.lastActive = now
     users[user.email] = userData

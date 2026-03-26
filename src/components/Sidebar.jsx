@@ -3,7 +3,7 @@ import { useAuth } from '../context/AuthContext'
 import {
   LayoutDashboard, BookOpen, BookMarked,
   PenLine, Target, User, GraduationCap, X, LogOut, ChevronRight, Shield,
-  Headphones, Globe, Sparkles, Brain
+  Headphones, Globe, Sparkles, Brain, Code2, MessageCircle
 } from 'lucide-react'
 
 const navItems = [
@@ -13,7 +13,9 @@ const navItems = [
   { icon: Headphones, label: 'TOEFL', to: '/materi/toefl' },
   { icon: Globe, label: 'IELTS', to: '/materi/ielts' },
   { icon: Sparkles, label: 'Vocabulary', to: '/vocabulary' },
+  { icon: MessageCircle, label: 'Daily Conversation', to: '/daily-conversation' },
   { icon: Brain, label: 'ML & AI', to: '/materi/ml' },
+  { icon: Code2, label: 'Coding Lab', to: '/coding-lab' },
   { icon: PenLine, label: 'Latihan Soal', to: '/latihan/matematika' },
   { icon: Target, label: 'Tryout', to: '/tryout' },
 ]
@@ -133,14 +135,14 @@ export default function Sidebar({ mobileOpen, onClose }) {
 
   return (
     <>
-      {/* Desktop sidebar */}
-      <aside className="hidden lg:flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen fixed left-0 top-0 z-40">
+      {/* Desktop sidebar — xl+ only (≥1280px) */}
+      <aside className="hidden xl:flex flex-col w-64 bg-white border-r border-gray-200 min-h-screen fixed left-0 top-0 z-40">
         <SidebarContent />
       </aside>
 
-      {/* Mobile overlay */}
+      {/* Mobile/Tablet overlay — shown below xl */}
       {mobileOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 flex">
+        <div className="xl:hidden fixed inset-0 z-50 flex">
           <div className="fixed inset-0 bg-black/40 backdrop-blur-sm" onClick={onClose} />
           <aside className="relative flex flex-col w-72 bg-white h-full z-10 shadow-2xl animate-slide-in-left">
             <SidebarContent />

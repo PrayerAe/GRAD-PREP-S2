@@ -1045,6 +1045,440 @@ export const englishSections = {
         <QuizBank questions={englishSectionQuiz.vocabulary[4]} color="purple" />
       </>,
     },
+    {
+      title: 'Everyday & Campus Vocabulary',
+      body: <>
+        <TipBox type="info">
+          <strong>Kenapa penting?</strong> Selain vocab akademik, kamu juga perlu menguasai kata-kata yang dipakai dalam percakapan sehari-hari dan di lingkungan kampus S2. TOEFL Listening & Speaking juga menguji vocabulary ini!
+        </TipBox>
+
+        {/* ── Everyday Conversation ── */}
+        <p className="text-sm font-bold text-gray-900 mt-5 mb-2 flex items-center gap-2">
+          <span className="w-7 h-7 bg-blue-600 text-white rounded-lg flex items-center justify-center text-xs">💬</span>
+          Percakapan Sehari-hari (Daily Conversation)
+        </p>
+        <p className="text-xs text-gray-500 mb-3">Kata-kata yang sering muncul dalam obrolan informal, belanja, restoran, travel, dll.</p>
+
+        <div className="space-y-2 my-3">
+          {[
+            { cat: 'Sapaan & Basa-basi', icon: '👋', words: [
+              ['How\'s it going?', 'Apa kabar? (santai)', 'Hey, how\'s it going? — Not bad, thanks!'],
+              ['What\'s up?', 'Ada apa? / Apa kabar?', 'What\'s up? — Not much, just chilling.'],
+              ['Long time no see!', 'Lama tidak bertemu!', 'Hey! Long time no see! How have you been?'],
+              ['catch up', 'ngobrol setelah lama', 'Let\'s catch up over coffee sometime.'],
+              ['hang out', 'jalan-jalan / nongkrong', 'Do you wanna hang out this weekend?'],
+              ['run into', 'bertemu secara kebetulan', 'I ran into my old friend at the mall.'],
+              ['get along with', 'akur / cocok dengan', 'She gets along with everyone in class.'],
+              ['Nice to meet you', 'Senang berkenalan', 'Hi, I\'m Yosua. Nice to meet you!'],
+              ['Take care!', 'Jaga diri! (pamit)', 'See you tomorrow. Take care!'],
+              ['Keep in touch', 'Tetap berhubungan', 'I\'m moving next week. Let\'s keep in touch!'],
+              ['It was nice talking to you', 'Senang ngobrol denganmu', 'Gotta go. It was nice talking to you!'],
+              ['How have you been?', 'Bagaimana kabarmu akhir-akhir ini?', 'Hey, how have you been? I haven\'t seen you in ages.'],
+            ]},
+            { cat: 'Opini & Persetujuan', icon: '🤝', words: [
+              ['I\'m all for it', 'Saya sangat setuju', 'A study group? I\'m all for it!'],
+              ['That makes sense', 'Itu masuk akal', 'Oh, that makes sense now.'],
+              ['I couldn\'t agree more', 'Sangat setuju', 'I couldn\'t agree more with your point.'],
+              ['No way!', 'Tidak mungkin! (kaget)', 'You got an A+? No way!'],
+              ['I\'m not sure about that', 'Saya kurang yakin', 'Hmm, I\'m not sure about that approach.'],
+              ['Fair enough', 'Cukup adil / oke deh', 'Fair enough, let\'s try your idea first.'],
+              ['I see your point', 'Saya paham maksudmu', 'I see your point, but I think there\'s another way.'],
+              ['That\'s debatable', 'Itu bisa diperdebatkan', 'That\'s debatable — not everyone agrees.'],
+              ['I beg to differ', 'Saya tidak sependapat (sopan)', 'With all due respect, I beg to differ.'],
+              ['Absolutely!', 'Tentu saja!', 'Should we start early? Absolutely!'],
+              ['I\'m on the fence', 'Saya masih ragu', 'I\'m on the fence about which elective to take.'],
+              ['You\'ve got a point', 'Kamu ada benarnya', 'You\'ve got a point. Let me reconsider.'],
+            ]},
+            { cat: 'Perasaan & Reaksi', icon: '😊', words: [
+              ['I\'m swamped', 'Saya sangat sibuk', 'Can\'t go out, I\'m swamped with work.'],
+              ['I\'m relieved', 'Saya lega', 'I\'m so relieved the exam is over.'],
+              ['That\'s a bummer', 'Sayang sekali', 'Class is cancelled? That\'s a bummer.'],
+              ['I\'m looking forward to', 'Saya menantikan', 'I\'m looking forward to the seminar.'],
+              ['fed up with', 'muak / bosan dengan', 'I\'m fed up with this traffic.'],
+              ['blown away', 'sangat terkesan', 'I was blown away by her presentation.'],
+              ['stressed out', 'sangat stres', 'I\'m so stressed out about the deadline.'],
+              ['pumped / excited', 'bersemangat', 'I\'m pumped for the field trip tomorrow!'],
+              ['burned out', 'kelelahan (mental)', 'After finals week, I\'m completely burned out.'],
+              ['freaking out', 'panik', 'I\'m freaking out — I lost my USB with my thesis!'],
+              ['on cloud nine', 'sangat bahagia', 'She was on cloud nine after getting accepted.'],
+              ['under the weather', 'kurang sehat', 'I\'m feeling a bit under the weather today.'],
+              ['overwhelmed', 'kewalahan', 'I feel overwhelmed with all these assignments.'],
+              ['grateful', 'bersyukur / berterima kasih', 'I\'m grateful for your help with the project.'],
+            ]},
+            { cat: 'Aktivitas Sehari-hari', icon: '🏃', words: [
+              ['grab a bite', 'makan sebentar', 'Let\'s grab a bite before class.'],
+              ['work out', 'olahraga / berolahraga', 'I work out at the gym three times a week.'],
+              ['sleep in', 'bangun siang / tidur lebih lama', 'I usually sleep in on Sundays.'],
+              ['figure out', 'mencari tahu / memecahkan', 'I need to figure out this math problem.'],
+              ['sort out', 'membereskan / menyelesaikan', 'Let me sort out my schedule first.'],
+              ['pick up', 'menjemput / mengambil', 'Can you pick up the notes from the office?'],
+              ['drop off', 'mengantar / menurunkan', 'I\'ll drop off the books at the library.'],
+              ['look into', 'menyelidiki / memeriksa', 'I\'ll look into the issue and get back to you.'],
+              ['come across', 'menemukan secara kebetulan', 'I came across an interesting article online.'],
+              ['put off', 'menunda', 'Stop putting off your homework!'],
+              ['give up', 'menyerah', 'Don\'t give up — you\'re almost done!'],
+              ['keep up with', 'mengikuti / tidak ketinggalan', 'It\'s hard to keep up with the readings.'],
+              ['run out of', 'kehabisan', 'We\'re running out of time for the project.'],
+              ['get rid of', 'membuang / menyingkirkan', 'I need to get rid of these old notes.'],
+            ]},
+            { cat: 'Belanja & Restoran', icon: '🛒', words: [
+              ['How much is this?', 'Berapa harganya?', 'Excuse me, how much is this textbook?'],
+              ['Do you have this in...?', 'Ada yang ukuran...?', 'Do you have this in a smaller size?'],
+              ['I\'d like to order...', 'Saya ingin pesan...', 'I\'d like to order a latte, please.'],
+              ['Can I get the bill?', 'Minta bonnya?', 'Excuse me, can I get the bill, please?'],
+              ['It\'s on me', 'Saya yang traktir', 'Don\'t worry, lunch is on me today.'],
+              ['split the bill', 'patungan', 'Let\'s split the bill evenly.'],
+              ['bargain / deal', 'tawar / penawaran bagus', 'I got a great deal on this laptop!'],
+              ['sold out', 'habis terjual', 'Sorry, that item is sold out.'],
+              ['on sale / discount', 'sedang diskon', 'These books are on sale — 50% off!'],
+              ['refund', 'pengembalian uang', 'Can I get a refund for this?'],
+            ]},
+            { cat: 'Transportasi & Arah', icon: '🚌', words: [
+              ['How do I get to...?', 'Bagaimana caranya ke...?', 'Excuse me, how do I get to the library?'],
+              ['It\'s within walking distance', 'Bisa jalan kaki', 'The café is within walking distance.'],
+              ['Take the bus / subway', 'Naik bus / kereta bawah tanah', 'Take the subway to Central Station.'],
+              ['turn left / right', 'belok kiri / kanan', 'Turn right at the traffic light.'],
+              ['straight ahead', 'lurus ke depan', 'Go straight ahead for two blocks.'],
+              ['across from', 'di seberang', 'The bookstore is across from the bank.'],
+              ['commute', 'perjalanan harian (rumah-kampus)', 'My commute takes about 30 minutes.'],
+              ['carpool', 'nebeng / berbagi kendaraan', 'We carpool to campus to save money.'],
+              ['get off at', 'turun di', 'Get off at the third stop.'],
+              ['running late', 'terlambat', 'Sorry, I\'m running late — be there in 10!'],
+            ]},
+            { cat: 'Telepon & Pesan', icon: '📱', words: [
+              ['give (someone) a call', 'menelepon seseorang', 'Give me a call when you arrive.'],
+              ['text / message', 'kirim pesan', 'Just text me the address.'],
+              ['get back to (someone)', 'menghubungi kembali', 'I\'ll get back to you after the meeting.'],
+              ['leave a message', 'tinggalkan pesan', 'He\'s not here. Can I leave a message?'],
+              ['hang up', 'menutup telepon', 'Don\'t hang up — I need to tell you something.'],
+              ['break up (signal)', 'sinyal putus-putus', 'You\'re breaking up, can you hear me?'],
+              ['on the phone', 'sedang menelepon', 'She\'s on the phone right now.'],
+              ['ASAP (as soon as possible)', 'sesegera mungkin', 'Please reply ASAP, it\'s urgent.'],
+            ]},
+            { cat: 'Cuaca & Waktu', icon: '🌤️', words: [
+              ['What\'s the weather like?', 'Bagaimana cuacanya?', 'What\'s the weather like in your city?'],
+              ['It\'s pouring / raining heavily', 'Hujan deras', 'Don\'t go out — it\'s pouring!'],
+              ['chilly / freezing', 'dingin / sangat dingin', 'It\'s really chilly this morning.'],
+              ['humid / muggy', 'lembap / pengap', 'It\'s so humid today, I can barely breathe.'],
+              ['on time / in time', 'tepat waktu / masih sempat', 'The bus arrived on time for once.'],
+              ['ahead of schedule', 'lebih cepat dari jadwal', 'We finished the project ahead of schedule.'],
+              ['behind schedule', 'terlambat dari jadwal', 'The construction is behind schedule.'],
+              ['sooner or later', 'cepat atau lambat', 'You\'ll have to face it sooner or later.'],
+            ]},
+          ].map(({ cat, icon, words }) => (
+            <div key={cat} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="bg-blue-50 px-4 py-2 flex items-center gap-2 border-b border-blue-100">
+                <span>{icon}</span>
+                <span className="text-xs font-bold text-blue-900">{cat}</span>
+              </div>
+              <div className="p-3">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <tbody>
+                      {words.map(([phrase, meaning, example], i) => (
+                        <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                          <td className="px-2 py-1.5 font-bold text-blue-700 whitespace-nowrap border-b border-gray-50">{phrase}</td>
+                          <td className="px-2 py-1.5 text-gray-700 border-b border-gray-50">{meaning}</td>
+                          <td className="px-2 py-1.5 text-gray-400 italic border-b border-gray-50">{example}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Campus & Classroom Vocabulary ── */}
+        <p className="text-sm font-bold text-gray-900 mt-6 mb-2 flex items-center gap-2">
+          <span className="w-7 h-7 bg-purple-600 text-white rounded-lg flex items-center justify-center text-xs">🎓</span>
+          Percakapan di Lingkungan Kampus (Campus Talk)
+        </p>
+        <p className="text-xs text-gray-500 mb-3">Kata-kata yang biasa digunakan di ruang kuliah, diskusi kelas, konsultasi dosen, dan kehidupan kampus S2.</p>
+
+        <div className="space-y-2 my-3">
+          {[
+            { cat: 'Di Ruang Kuliah', icon: '📚', words: [
+              ['take notes', 'mencatat', 'Make sure to take notes during the lecture.'],
+              ['pay attention', 'memperhatikan', 'Please pay attention to this important concept.'],
+              ['raise a question', 'mengajukan pertanyaan', 'I\'d like to raise a question about the methodology.'],
+              ['hand in / submit', 'mengumpulkan (tugas)', 'Please hand in your assignments by Friday.'],
+              ['drop a course', 'membatalkan mata kuliah', 'I had to drop the course because of schedule conflicts.'],
+              ['audit a class', 'mengikuti kelas tanpa kredit', 'You can audit the class if you\'re interested.'],
+              ['make up (a class/exam)', 'mengganti (kelas/ujian)', 'Can I make up the exam I missed?'],
+              ['fall behind', 'tertinggal', 'Don\'t fall behind on the readings.'],
+              ['catch up on', 'mengejar ketertinggalan', 'I need to catch up on last week\'s lectures.'],
+              ['attendance / roll call', 'kehadiran / absen', 'Attendance counts for 10% of your grade.'],
+              ['syllabus', 'silabus / rencana kuliah', 'Check the syllabus for the reading list.'],
+              ['assignment / homework', 'tugas', 'The assignment is due next Monday.'],
+              ['midterm / final exam', 'ujian tengah / akhir semester', 'The midterm covers chapters 1 through 6.'],
+              ['pop quiz', 'kuis mendadak', 'The professor gave us a pop quiz today!'],
+              ['grade / mark / score', 'nilai', 'What grade did you get on the paper?'],
+              ['extra credit', 'nilai tambahan', 'You can do extra credit to boost your grade.'],
+              ['elective / required course', 'pilihan / wajib', 'I\'m taking two electives this semester.'],
+              ['lecture / seminar / tutorial', 'kuliah / seminar / tutorial', 'We have a two-hour lecture on Tuesdays.'],
+            ]},
+            { cat: 'Diskusi & Presentasi', icon: '🗣️', words: [
+              ['I\'d like to add to that', 'Saya ingin menambahkan', 'Great point. I\'d like to add to that...'],
+              ['That\'s a valid point', 'Itu poin yang valid', 'That\'s a valid point, but I think...'],
+              ['Could you elaborate?', 'Bisa jelaskan lebih lanjut?', 'Interesting idea. Could you elaborate on that?'],
+              ['To sum up / In summary', 'Untuk merangkum', 'To sum up, our findings suggest...'],
+              ['In my view / opinion', 'Menurut pendapat saya', 'In my view, this approach is more effective.'],
+              ['Let me clarify', 'Izinkan saya memperjelas', 'Let me clarify what I meant by that.'],
+              ['build on (an idea)', 'mengembangkan (ide)', 'I want to build on what she just said.'],
+              ['back up (a claim)', 'mendukung (argumen)', 'Can you back up that claim with evidence?'],
+              ['raise a concern', 'menyampaikan kekhawatiran', 'I\'d like to raise a concern about the timeline.'],
+              ['agree to disagree', 'sepakat untuk tidak sepakat', 'Let\'s just agree to disagree on this one.'],
+              ['play devil\'s advocate', 'sengaja mengambil posisi lawan', 'Let me play devil\'s advocate here...'],
+              ['That brings up a good point', 'Itu memunculkan poin bagus', 'That brings up a good point about ethics.'],
+              ['go off on a tangent', 'menyimpang dari topik', 'Sorry, I went off on a tangent. Back to the topic...'],
+              ['break it down', 'menjelaskan secara rinci', 'Can you break it down step by step?'],
+              ['wrap up', 'menutup / mengakhiri', 'Let\'s wrap up the discussion here.'],
+              ['take turns', 'bergiliran', 'Let\'s take turns presenting our findings.'],
+            ]},
+            { cat: 'Konsultasi dengan Dosen', icon: '👨‍🏫', words: [
+              ['office hours', 'jam konsultasi dosen', 'I\'ll visit during office hours to discuss my thesis.'],
+              ['advisor / supervisor', 'dosen pembimbing', 'Have you talked to your advisor about your topic?'],
+              ['feedback', 'umpan balik / masukan', 'Could I get your feedback on my draft?'],
+              ['deadline extension', 'perpanjangan batas waktu', 'May I request a deadline extension?'],
+              ['go over', 'membahas / meninjau', 'Let\'s go over the results together.'],
+              ['touch base', 'menghubungi singkat', 'I\'ll touch base with my professor next week.'],
+              ['revise / revision', 'merevisi / revisi', 'I need to revise my literature review.'],
+              ['outline', 'kerangka / garis besar', 'Please submit an outline before the full draft.'],
+              ['proofread', 'mengoreksi / memeriksa tulisan', 'Could you proofread my abstract?'],
+              ['draft / first draft', 'draf / draf pertama', 'Submit your first draft by next week.'],
+              ['make an appointment', 'membuat janji', 'I\'d like to make an appointment with Prof. Lee.'],
+              ['recommendation letter', 'surat rekomendasi', 'Could you write a recommendation letter for me?'],
+              ['I was wondering if...', 'Saya ingin bertanya apakah...', 'I was wondering if I could change my topic?'],
+              ['follow up on', 'menindaklanjuti', 'I\'m following up on our conversation last week.'],
+            ]},
+            { cat: 'Kehidupan Kampus S2', icon: '🏫', words: [
+              ['scholarship / fellowship', 'beasiswa', 'She received a full scholarship for her master\'s.'],
+              ['thesis / dissertation', 'tesis / disertasi', 'I\'m working on my thesis proposal.'],
+              ['peer review', 'telaah sejawat', 'Your paper will go through a peer review process.'],
+              ['GPA (Grade Point Average)', 'IPK', 'You need a minimum GPA of 3.5 to graduate.'],
+              ['prerequisite', 'prasyarat', 'Statistics is a prerequisite for this course.'],
+              ['curriculum vitae (CV)', 'riwayat hidup akademik', 'Update your CV before applying.'],
+              ['symposium / colloquium', 'seminar akademik', 'I\'m presenting at a symposium next month.'],
+              ['peer / cohort', 'rekan sesama / angkatan', 'My cohort is very supportive and collaborative.'],
+              ['dean / department head', 'dekan / ketua jurusan', 'The dean announced new policies today.'],
+              ['registrar\'s office', 'bagian administrasi akademik', 'Go to the registrar\'s office for your transcript.'],
+              ['transcript', 'transkrip nilai', 'I need an official transcript for my application.'],
+              ['credits / credit hours', 'SKS', 'This course is worth 3 credits.'],
+              ['academic probation', 'masa percobaan akademik', 'Students with low GPA may be put on academic probation.'],
+              ['commencement / graduation', 'wisuda', 'Commencement is scheduled for June 15th.'],
+              ['teaching assistant (TA)', 'asisten dosen', 'The TA will lead the discussion section.'],
+              ['research assistant (RA)', 'asisten peneliti', 'I\'m working as an RA in the biology lab.'],
+            ]},
+            { cat: 'Penulisan Akademik', icon: '✍️', words: [
+              ['abstract', 'abstrak / ringkasan', 'Write a 200-word abstract for your paper.'],
+              ['literature review', 'tinjauan pustaka', 'The literature review covers recent studies.'],
+              ['methodology', 'metodologi', 'Explain your methodology in detail.'],
+              ['findings / results', 'temuan / hasil', 'Our findings support the hypothesis.'],
+              ['cite / citation', 'mengutip / kutipan', 'Make sure to cite your sources properly.'],
+              ['bibliography / references', 'daftar pustaka', 'Add all references to the bibliography.'],
+              ['plagiarism', 'plagiarisme / menjiplak', 'Plagiarism can lead to expulsion.'],
+              ['paraphrase', 'memparafrase', 'Paraphrase the original text in your own words.'],
+              ['peer-reviewed journal', 'jurnal terakreditasi', 'Only use peer-reviewed journal articles.'],
+              ['hypothesis', 'hipotesis', 'State your hypothesis clearly.'],
+              ['variable (independent/dependent)', 'variabel (bebas/terikat)', 'Identify the independent variable in your study.'],
+              ['conclusion', 'kesimpulan', 'Summarize your key findings in the conclusion.'],
+              ['appendix', 'lampiran', 'The raw data is in the appendix.'],
+              ['footnote / endnote', 'catatan kaki', 'Add a footnote to explain this term.'],
+            ]},
+            { cat: 'Perpustakaan & Riset', icon: '📖', words: [
+              ['check out (a book)', 'meminjam (buku)', 'I checked out three books from the library.'],
+              ['due date / overdue', 'tanggal jatuh tempo / terlambat', 'The book is overdue — you\'ll have to pay a fine.'],
+              ['renew', 'memperpanjang pinjaman', 'Can I renew this book for another week?'],
+              ['database', 'basis data', 'Search the database for relevant articles.'],
+              ['keyword search', 'pencarian kata kunci', 'Try a keyword search using different terms.'],
+              ['primary source', 'sumber primer', 'Use primary sources for your historical analysis.'],
+              ['secondary source', 'sumber sekunder', 'Secondary sources provide analysis of primary data.'],
+              ['interlibrary loan', 'peminjaman antar perpustakaan', 'Request it through interlibrary loan.'],
+              ['reference desk', 'meja referensi', 'Ask at the reference desk for help finding articles.'],
+              ['stacks / shelves', 'rak buku', 'The book should be in the stacks on the third floor.'],
+            ]},
+          ].map(({ cat, icon, words }) => (
+            <div key={cat} className="bg-white border border-gray-200 rounded-xl overflow-hidden">
+              <div className="bg-purple-50 px-4 py-2 flex items-center gap-2 border-b border-purple-100">
+                <span>{icon}</span>
+                <span className="text-xs font-bold text-purple-900">{cat}</span>
+              </div>
+              <div className="p-3">
+                <div className="overflow-x-auto">
+                  <table className="w-full text-xs">
+                    <tbody>
+                      {words.map(([phrase, meaning, example], i) => (
+                        <tr key={i} className={i % 2 === 0 ? 'bg-white' : 'bg-gray-50/50'}>
+                          <td className="px-2 py-1.5 font-bold text-purple-700 whitespace-nowrap border-b border-gray-50">{phrase}</td>
+                          <td className="px-2 py-1.5 text-gray-700 border-b border-gray-50">{meaning}</td>
+                          <td className="px-2 py-1.5 text-gray-400 italic border-b border-gray-50">{example}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* ── Useful Phrases ── */}
+        <p className="text-sm font-bold text-gray-900 mt-6 mb-2 flex items-center gap-2">
+          <span className="w-7 h-7 bg-emerald-600 text-white rounded-lg flex items-center justify-center text-xs">✨</span>
+          Frasa Berguna untuk Berbagai Situasi
+        </p>
+
+        <TabCard color="emerald" tabs={[
+          { label: '☕ Small Talk', content: (
+            <div className="space-y-1.5 text-xs">
+              {[
+                ['Nice weather today, isn\'t it?', 'Cuacanya bagus hari ini, ya?'],
+                ['Have you been to the new café near campus?', 'Sudah pernah ke kafe baru dekat kampus?'],
+                ['What are you up to this weekend?', 'Ada rencana apa akhir pekan ini?'],
+                ['I heard the professor is really strict.', 'Kudengar dosennya ketat banget.'],
+                ['Are you taking any electives this semester?', 'Kamu ambil mata kuliah pilihan semester ini?'],
+                ['How do you like the program so far?', 'Gimana menurutmu program ini sejauh ini?'],
+                ['Where are you from originally?', 'Asalnya dari mana?'],
+                ['What brought you to this program?', 'Apa yang membuatmu ambil program ini?'],
+                ['Have you started working on your thesis yet?', 'Sudah mulai kerjakan tesis?'],
+                ['This campus is huge — I keep getting lost!', 'Kampusnya besar — saya sering tersesat!'],
+              ].map(([en, id], i) => (
+                <div key={i} className="flex gap-2 py-1 border-b border-gray-100 last:border-0">
+                  <span className="text-emerald-700 font-medium flex-1">{en}</span>
+                  <span className="text-gray-400 flex-1">{id}</span>
+                </div>
+              ))}
+            </div>
+          )},
+          { label: '🙋 Asking in Class', content: (
+            <div className="space-y-1.5 text-xs">
+              {[
+                ['Excuse me, could you repeat that?', 'Maaf, bisa diulangi?'],
+                ['I\'m sorry, I didn\'t quite catch that.', 'Maaf, saya kurang dengar tadi.'],
+                ['Could you explain that in simpler terms?', 'Bisa dijelaskan lebih sederhana?'],
+                ['What exactly do you mean by...?', 'Apa tepatnya yang dimaksud dengan...?'],
+                ['How does this relate to what we discussed last week?', 'Bagaimana ini berhubungan dengan diskusi minggu lalu?'],
+                ['Is this going to be on the exam?', 'Apakah ini akan keluar di ujian?'],
+                ['Could you give us an example?', 'Bisa berikan contoh?'],
+                ['I have a follow-up question...', 'Saya punya pertanyaan lanjutan...'],
+                ['Just to clarify, do you mean that...?', 'Untuk klarifikasi, maksudnya apakah...?'],
+                ['What are the key takeaways from today?', 'Apa poin-poin utama hari ini?'],
+              ].map(([en, id], i) => (
+                <div key={i} className="flex gap-2 py-1 border-b border-gray-100 last:border-0">
+                  <span className="text-emerald-700 font-medium flex-1">{en}</span>
+                  <span className="text-gray-400 flex-1">{id}</span>
+                </div>
+              ))}
+            </div>
+          )},
+          { label: '📧 Email ke Dosen', content: (
+            <div className="space-y-1.5 text-xs">
+              {[
+                ['Dear Professor [Name],', 'Kepada Profesor [Nama],'],
+                ['I hope this email finds you well.', 'Semoga email ini sampai dalam keadaan baik.'],
+                ['I am writing to inquire about...', 'Saya menulis untuk menanyakan tentang...'],
+                ['I would appreciate your guidance on...', 'Saya sangat mengharapkan bimbingan Anda terkait...'],
+                ['Would it be possible to schedule a meeting?', 'Apakah mungkin untuk menjadwalkan pertemuan?'],
+                ['I apologize for the late submission.', 'Saya mohon maaf atas keterlambatan pengumpulan.'],
+                ['Please find attached my draft/assignment.', 'Terlampir draf/tugas saya.'],
+                ['I look forward to hearing from you.', 'Saya menantikan balasan Anda.'],
+                ['Thank you for your time and consideration.', 'Terima kasih atas waktu dan pertimbangannya.'],
+                ['Best regards, / Sincerely,', 'Salam hormat,'],
+              ].map(([en, id], i) => (
+                <div key={i} className="flex gap-2 py-1 border-b border-gray-100 last:border-0">
+                  <span className="text-emerald-700 font-medium flex-1">{en}</span>
+                  <span className="text-gray-400 flex-1">{id}</span>
+                </div>
+              ))}
+            </div>
+          )},
+          { label: '🤝 Kerja Kelompok', content: (
+            <div className="space-y-1.5 text-xs">
+              {[
+                ['Let\'s divide the work.', 'Ayo bagi tugasnya.'],
+                ['Who wants to take the lead on this?', 'Siapa yang mau jadi penanggung jawab ini?'],
+                ['I\'ll handle the data analysis part.', 'Saya yang urus bagian analisis data.'],
+                ['When is our next meeting?', 'Kapan pertemuan kita selanjutnya?'],
+                ['Can we set a deadline for each section?', 'Bisa kita buat deadline per bagian?'],
+                ['Let me share my screen.', 'Izinkan saya share layar.'],
+                ['Does anyone have questions or concerns?', 'Ada yang punya pertanyaan atau kekhawatiran?'],
+                ['Let\'s brainstorm some ideas first.', 'Ayo brainstorming ide dulu.'],
+                ['Can someone take minutes?', 'Ada yang bisa mencatat notulensi?'],
+                ['I think we\'re on the right track.', 'Menurut saya kita sudah di jalur yang benar.'],
+                ['Let\'s stay focused on the main topic.', 'Mari tetap fokus pada topik utama.'],
+                ['Should we schedule a follow-up meeting?', 'Perlu jadwalkan pertemuan lanjutan?'],
+              ].map(([en, id], i) => (
+                <div key={i} className="flex gap-2 py-1 border-b border-gray-100 last:border-0">
+                  <span className="text-emerald-700 font-medium flex-1">{en}</span>
+                  <span className="text-gray-400 flex-1">{id}</span>
+                </div>
+              ))}
+            </div>
+          )},
+          { label: '🎤 Presentasi', content: (
+            <div className="space-y-1.5 text-xs">
+              {[
+                ['Good morning, today I\'ll be presenting...', 'Selamat pagi, hari ini saya akan mempresentasikan...'],
+                ['Let me start by giving an overview.', 'Izinkan saya mulai dengan gambaran umum.'],
+                ['As you can see from this chart...', 'Seperti yang bisa dilihat dari grafik ini...'],
+                ['Moving on to the next point...', 'Beralih ke poin berikutnya...'],
+                ['I\'d like to draw your attention to...', 'Saya ingin menarik perhatian Anda ke...'],
+                ['This graph illustrates that...', 'Grafik ini menggambarkan bahwa...'],
+                ['To conclude, our research shows...', 'Sebagai penutup, penelitian kami menunjukkan...'],
+                ['Are there any questions?', 'Ada pertanyaan?'],
+                ['That\'s a great question. Let me address that.', 'Pertanyaan bagus. Izinkan saya menjawab.'],
+                ['Thank you for your attention.', 'Terima kasih atas perhatiannya.'],
+              ].map(([en, id], i) => (
+                <div key={i} className="flex gap-2 py-1 border-b border-gray-100 last:border-0">
+                  <span className="text-emerald-700 font-medium flex-1">{en}</span>
+                  <span className="text-gray-400 flex-1">{id}</span>
+                </div>
+              ))}
+            </div>
+          )},
+        ]} />
+
+        <TipBox type="tip">
+          <strong>Tips percakapan natural:</strong> Jangan terlalu formal di situasi santai. Gunakan phrasal verbs (hang out, figure out, catch up) saat bicara dengan teman. Saat di kelas atau email ke dosen, gunakan bahasa yang lebih formal (I would like to, Could you please, I would appreciate).
+        </TipBox>
+
+        <MiniQuiz color="blue"
+          question="Mana ungkapan yang PALING TEPAT saat ingin bertanya di kelas?"
+          options={['Hey, what does that mean?', 'Could you elaborate on that point, please?', 'I don\'t get it, explain again.', 'Huh? Say that again.']}
+          correctIndex={1}
+          explanation="Di kelas (situasi semi-formal), gunakan bahasa sopan: 'Could you elaborate...' lebih tepat daripada 'Hey' atau 'Huh?' yang terlalu kasual."
+        />
+
+        <MiniQuiz color="purple"
+          question="'I need to ___ my thesis outline before meeting my advisor.' Pilih phrasal verb yang tepat:"
+          options={['go over', 'hang out', 'sleep in', 'catch up']}
+          correctIndex={0}
+          explanation="'Go over' = meninjau/membahas kembali. Cocok untuk konteks akademik. 'Hang out' = nongkrong, 'sleep in' = bangun siang, 'catch up' = mengobrol setelah lama."
+        />
+
+        <MatchGame color="blue" pairs={[
+          { left: 'grab a bite', right: 'makan sebentar' },
+          { left: 'office hours', right: 'jam konsultasi dosen' },
+          { left: 'fall behind', right: 'tertinggal' },
+          { left: 'peer review', right: 'telaah sejawat' },
+          { left: 'figure out', right: 'mencari tahu' },
+        ]} />
+
+        <RevealBox color="purple"
+          question="Apa perbedaan 'thesis' dan 'dissertation'?"
+          answer="Di sistem Amerika: Thesis = untuk S2 (Master's), Dissertation = untuk S3 (Doctoral). Di sistem British: sebaliknya! Thesis = S3, Dissertation = S2. Dalam TOEFL, keduanya merujuk pada karya tulis ilmiah akhir."
+        />
+
+        <RevealBox color="emerald"
+          question="Bagaimana memulai small talk dengan mahasiswa baru di kampus?"
+          answer={<span>Mulai dengan topik yang <strong>relatable</strong>: <br/>• <em>"Hi, are you new to the program too?"</em> <br/>• <em>"Which lab/department are you in?"</em> <br/>• <em>"How are you finding the city so far?"</em> <br/>Hindari topik sensitif (politik, agama, gaji). Topik aman: cuaca, kelas, kampus, makanan, hobi.</span>}
+        />
+
+        <QuizBank questions={englishSectionQuiz.vocabulary[5]} color="purple" />
+      </>,
+    },
   ],
 
   // ── 4. STRUCTURE ───────────────────────────────────────────────────────────

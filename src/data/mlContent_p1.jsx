@@ -1,4 +1,5 @@
 import { FormulaCard, ExampleBox, TipBox, StepList, ConceptGrid } from './mathContent.jsx'
+import { NumpyBroadcastingDiagram, PandasAnatomyDiagram, SklearnPipelineDiagram } from './mlDiagrams.jsx'
 
 function CodeBlock({ children }) {
   return (
@@ -59,6 +60,7 @@ export const pythonSections = [
     body: (
       <div>
         <p className="text-sm text-gray-600 mb-4">NumPy adalah fondasi ekosistem Data Science Python. Hampir semua library (Pandas, Scikit-learn, TensorFlow) bergantung pada NumPy array di balik layar.</p>
+        <NumpyBroadcastingDiagram />
         <SectionTitle icon="📦">Instalasi & Import</SectionTitle>
         <CodeBlock>{`pip install numpy pandas matplotlib seaborn scikit-learn
 
@@ -119,6 +121,7 @@ result = np.dot(a, b)  # ~100x lebih cepat`}</CodeBlock>
     body: (
       <div>
         <p className="text-sm text-gray-600 mb-4">Pandas adalah library utama untuk manipulasi data tabular. DataFrame ibarat spreadsheet Excel dengan kemampuan jauh lebih powerful.</p>
+        <PandasAnatomyDiagram />
         <SectionTitle icon="📥">Membaca Data</SectionTitle>
         <CodeBlock>{`df = pd.read_csv("data.csv", encoding="utf-8")
 df = pd.read_excel("data.xlsx", sheet_name="Sheet1")
@@ -218,6 +221,7 @@ plt.show()`}</CodeBlock>
     body: (
       <div>
         <p className="text-sm text-gray-600 mb-4">Scikit-learn menyediakan API konsisten: semua estimator menggunakan <code>fit()</code>, <code>predict()</code>, dan <code>transform()</code>.</p>
+        <SklearnPipelineDiagram />
         <DiagramBox>{`  Raw Data
       │
       ▼

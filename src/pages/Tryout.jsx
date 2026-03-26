@@ -101,9 +101,9 @@ export default function Tryout() {
     return (
       <div className="flex min-h-screen bg-slate-50">
         <Sidebar mobileOpen={mobileSidebar} onClose={() => setMobileSidebar(false)} />
-        <main className="flex-1 lg:ml-64">
+        <main className="flex-1 xl:ml-64">
           <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 sm:px-8 py-4 flex items-center gap-4 sticky top-0 z-30">
-            <button className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100" onClick={() => setMobileSidebar(true)}>
+            <button className="xl:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100" onClick={() => setMobileSidebar(true)}>
               <Menu size={22} />
             </button>
             <h1 className="font-heading font-bold text-xl text-gray-900">Simulasi Tryout CBT</h1>
@@ -175,9 +175,9 @@ export default function Tryout() {
     return (
       <div className="flex min-h-screen bg-slate-50">
         <Sidebar mobileOpen={mobileSidebar} onClose={() => setMobileSidebar(false)} />
-        <main className="flex-1 lg:ml-64">
+        <main className="flex-1 xl:ml-64">
           <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 sm:px-8 py-3 flex items-center gap-3 sticky top-0 z-30">
-            <button className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100" onClick={() => setMobileSidebar(true)}>
+            <button className="xl:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100" onClick={() => setMobileSidebar(true)}>
               <Menu size={20} />
             </button>
             <div className="flex-1">
@@ -262,9 +262,9 @@ export default function Tryout() {
   return (
     <div className="flex min-h-screen bg-slate-50">
       <Sidebar mobileOpen={mobileSidebar} onClose={() => setMobileSidebar(false)} />
-      <main className="flex-1 lg:ml-64">
+      <main className="flex-1 xl:ml-64">
         <header className="bg-white/80 backdrop-blur-xl border-b border-gray-100 px-4 sm:px-8 py-4 flex items-center gap-4 sticky top-0 z-30">
-          <button className="lg:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100" onClick={() => setMobileSidebar(true)}>
+          <button className="xl:hidden p-2 rounded-lg text-gray-600 hover:bg-gray-100" onClick={() => setMobileSidebar(true)}>
             <Menu size={22} />
           </button>
           <Award size={20} className="text-amber-500" />
